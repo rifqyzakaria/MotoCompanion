@@ -46,7 +46,7 @@ class BluetoothConnectionReceiver : BroadcastReceiver() {
 
                 // 1. Jalankan MediaSessionService di foreground agar terhubung ke RoadSync
                 val mediaServiceIntent = Intent(context, MediaSessionService::class.java).apply {
-                    action = MediaSessionService.ACTION_TOGGLE
+                    setAction(MediaSessionService.ACTION_TOGGLE)
                 }
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

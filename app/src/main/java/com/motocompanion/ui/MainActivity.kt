@@ -305,13 +305,13 @@ class MainActivity : AppCompatActivity() {
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
             binding.btnToggleCompanion.text = "Matikan"
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_red))
-            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_red)
+            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_red)
         } else if (isInstalled) {
             binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi"
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_primary))
             binding.btnToggleCompanion.text = "Aktifkan"
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_green)
+            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_green)
         } else {
             binding.tvRoadSyncStatus.text = "Honda RoadSync: Belum Terpasang"
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))

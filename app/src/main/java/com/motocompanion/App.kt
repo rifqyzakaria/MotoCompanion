@@ -13,6 +13,7 @@ class App : Application() {
         const val CHANNEL_TTS_ALERTS = "moto_tts_alerts"
         const val CHANNEL_MEDIA_SERVICE = "moto_media_service"
         const val CHANNEL_GPS_TRACKER = "moto_gps_tracker"
+        const val CHANNEL_COMPANION = "moto_companion_status"
 
         lateinit var instance: App
             private set
@@ -61,7 +62,16 @@ class App : Application() {
                 description = "Tracking GPS real-time untuk speedometer dan anti-pusing peta"
             }
 
-            notificationManager.createNotificationChannels(listOf(ttsChannel, mediaChannel, gpsChannel))
+            // Companion Mode Status Channel
+            val companionChannel = NotificationChannel(
+                CHANNEL_COMPANION,
+                "Pendamping Honda RoadSync",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Status koneksi pendamping ke motor Honda PCX & RoadSync"
+            }
+
+            notificationManager.createNotificationChannels(listOf(ttsChannel, mediaChannel, gpsChannel, companionChannel))
         }
     }
 }

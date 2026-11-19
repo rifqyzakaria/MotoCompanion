@@ -34,6 +34,13 @@ class NotificationAnnouncerService : NotificationListenerService() {
         if (sbn == null) return
 
         val pkg = sbn.packageName ?: return
+
+        // Deteksi aktivitas Honda RoadSync
+        if (com.motocompanion.util.RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(pkg)) {
+            com.motocompanion.util.RoadSyncBridge.isRoadSyncActive = true
+            Log.i(tag, "Notifikasi Honda RoadSync terdeteksi aktif: $pkg")
+        }
+
         if (pkg != WHATSAPP_PKG && pkg != WHATSAPP_BUSINESS_PKG) return
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

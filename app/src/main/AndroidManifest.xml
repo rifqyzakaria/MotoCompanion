@@ -21,12 +21,20 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    
+    <!-- Bluetooth for Honda PCX & Intercom Detection -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <!-- Izin untuk mendeteksi semua pemutar media/video dari Play Store atau luar Play Store -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <queries>
+        <!-- Honda RoadSync App Packages -->
+        <package android:name="com.honda.ms.dm.sab" />
+        <package android:name="com.honda.ms.hsvcs" />
+        <package android:name="com.honda.auto.hsvcs" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="audio/*" />
@@ -85,10 +93,21 @@
             android:name=".ui.PlayerSelectorActivity"
             android:exported="false" />
 
-        <!-- Custom Built-in Media Player Activity -->
+        <!-- Custom Built-in Media Player Activity with Official Music App Category for Honda RoadSync -->
         <activity
             android:name=".ui.MusicActivity"
-            android:exported="false" />
+            android:exported="true"
+            android:label="MotoCompanion Music">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.APP_MUSIC" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <!-- Notification Listener Service for WhatsApp Calls and Messages -->
         <service
@@ -124,6 +143,16 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Bluetooth Connection Receiver for Auto-Start on Honda PCX / Intercom -->
+        <receiver
+            android:name=".receiver.BluetoothConnectionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
             </intent-filter>
         </receiver>
 

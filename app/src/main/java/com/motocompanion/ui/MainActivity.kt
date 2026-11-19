@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
@@ -22,9 +23,11 @@ import com.motocompanion.App
 import com.motocompanion.BuildConfig
 import com.motocompanion.databinding.ActivityMainBinding
 import com.motocompanion.service.GpsTrackingService
+import com.motocompanion.service.MediaSessionService
 import com.motocompanion.service.NotificationAnnouncerService
 import com.motocompanion.update.AppUpdateManager
 import com.motocompanion.util.MediaControlDispatcher
+import com.motocompanion.util.RoadSyncBridge
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updatePermissionStatuses()
         updateActivePlayerName()
+        updateRoadSyncUi()
         updateGithubRepoUi()
         trackUpdateHandler.post(trackUpdateRunnable)
     }
@@ -65,6 +69,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        // Integrasi Pendamping Honda RoadSync (PCX)
+        binding.btnLaunchRoadSync.setOnClickListener {
+            val launched = RoadSyncBridge.launchRoadSync(this)
+            if (!launched) {
+                AlertDialog.Builder(this)
+                    .setTitle("Honda RoadSync Belum Terpasang")
+                    .setMessage("Aplikasi resmi Honda RoadSync tidak ditemukan di HP ini. Unduh dari Google Play Store?")
+                    .setPositiveButton("Buka Play Store") { _, _ ->
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${RoadSyncBridge.PKG_HONDA_ROADSYNC}")))
+                        } catch (_: Exception) {
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=${RoadSyncBridge.PKG_HONDA_ROADSYNC}")))
+                        }
+                    }
+                    .setNegativeButton("Batal", null)
+                    .show()
+            }
+        }
+
+        binding.btnRoadSyncGuide.setOnClickListener {
+            showRoadSyncGuideDialog()
+        }
+
+        binding.btnToggleCompanion.setOnClickListener {
+            toggleCompanionMode()
+        }
+
+        binding.switchAutoStartCompanion.setOnCheckedChangeListener { _, isChecked ->
+            RoadSyncBridge.setAutoStartEnabled(this, isChecked)
+            Toast.makeText(
+                this,
+                if (isChecked) "Auto-start aktif saat Bluetooth PCX terhubung" else "Auto-start dinonaktifkan",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
         // Kontrol Cepat Pemutar Media Terpilih (Dashboard Utama)
         binding.btnMainPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
@@ -205,6 +245,88 @@ class MainActivity : AppCompatActivity() {
         val version = BuildConfig.VERSION_NAME
         binding.tvCurrentVersion.text = "Versi Saat Ini: v$version"
         binding.tvGithubRepo.text = "Repo: ${AppUpdateManager.getSavedRepo(this)}"
+    }
+
+    private fun showRoadSyncGuideDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("🏍️ Hubungkan ke Honda RoadSync (PCX)")
+            .setMessage(
+                "Langkah menghubungkan agar tombol stang PCX mengontrol musik Anda:\n\n" +
+                "1. Pastikan Bluetooth ponsel terhubung ke motor Honda PCX & Intercom helm.\n\n" +
+                "2. Buka aplikasi resmi Honda RoadSync.\n\n" +
+                "3. Buka Pengaturan (Settings) ➔ Sumber Musik (Music Source).\n\n" +
+                "4. Pilih 'MotoCompanion' sebagai sumber musik!\n\n" +
+                "5. Di MotoCompanion, pilih pemutar musik yang Anda inginkan (Spotify, YouTube Music, VLC, dll.).\n\n" +
+                "6. Selesai! Saat berkendara, tombol stang motor Honda PCX akan langsung mengontrol lagu dan judul lagu tampil di speedometer!"
+            )
+            .setPositiveButton("Buka RoadSync Sekarang") { _, _ ->
+                RoadSyncBridge.launchRoadSync(this)
+            }
+            .setNegativeButton("Tutup", null)
+            .show()
+    }
+
+    private fun toggleCompanionMode() {
+        val currentlyActive = RoadSyncBridge.isCompanionActive(this)
+        if (!currentlyActive) {
+            RoadSyncBridge.setCompanionActive(this, true)
+            val serviceIntent = Intent(this, MediaSessionService::class.java).apply {
+                action = MediaSessionService.ACTION_TOGGLE
+            }
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    ContextCompat.startForegroundService(this, serviceIntent)
+                } else {
+                    startService(serviceIntent)
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Gagal start MediaSessionService: ${e.message}")
+            }
+
+            if (hasLocationPermission()) {
+                startGpsService()
+            }
+
+            Toast.makeText(this, "🏍️ Mode Pendamping Honda PCX Aktif!", Toast.LENGTH_SHORT).show()
+        } else {
+            RoadSyncBridge.setCompanionActive(this, false)
+            Toast.makeText(this, "Mode Pendamping Dinonaktifkan", Toast.LENGTH_SHORT).show()
+        }
+        updateRoadSyncUi()
+    }
+
+    private fun updateRoadSyncUi() {
+        val isInstalled = RoadSyncBridge.isRoadSyncInstalled(this)
+        val isCompanionActive = RoadSyncBridge.isCompanionActive(this)
+        val connectedDevice = RoadSyncBridge.getConnectedDeviceName(this)
+
+        if (isCompanionActive) {
+            binding.tvRoadSyncStatus.text = "Status: Aktif Mendampingi Honda PCX 🟢"
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
+            binding.btnToggleCompanion.text = "Matikan"
+            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_red))
+            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_red)
+        } else if (isInstalled) {
+            binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi"
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_primary))
+            binding.btnToggleCompanion.text = "Aktifkan"
+            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
+            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_green)
+        } else {
+            binding.tvRoadSyncStatus.text = "Honda RoadSync: Belum Terpasang"
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
+            binding.btnToggleCompanion.text = "Aktifkan"
+        }
+
+        if (connectedDevice != null) {
+            binding.tvBluetoothDeviceName.text = "Bluetooth Motor/Helm: Terhubung ($connectedDevice)"
+            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
+        } else {
+            binding.tvBluetoothDeviceName.text = "Bluetooth Motor/Helm: Belum Terhubung"
+            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_amber))
+        }
+
+        binding.switchAutoStartCompanion.isChecked = RoadSyncBridge.isAutoStartEnabled(this)
     }
 
     private fun updateActivePlayerName() {

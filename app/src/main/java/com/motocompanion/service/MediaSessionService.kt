@@ -10,6 +10,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -29,6 +30,9 @@ class MediaSessionService : MediaBrowserServiceCompat() {
     private val tag = "MotoMediaSession"
 
     companion object {
+        const val MEDIA_ROOT_ID = "root_motocompanion"
+        const val MEDIA_ITEM_STREAM_ID = "motocompanion_stream_player"
+
         const val ACTION_PLAY = "com.motocompanion.ACTION_PLAY"
         const val ACTION_PAUSE = "com.motocompanion.ACTION_PAUSE"
         const val ACTION_NEXT = "com.motocompanion.ACTION_NEXT"
@@ -71,6 +75,26 @@ class MediaSessionService : MediaBrowserServiceCompat() {
 
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
+                    handlePlay()
+                }
+
+                override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+                    Log.i(tag, "onPlayFromMediaId diterima dari RoadSync: $mediaId")
+                    if (mediaId == MEDIA_ITEM_STREAM_ID) {
+                        handlePlay()
+                    } else {
+                        val songId = mediaId?.toLongOrNull()
+                        val index = playlist.indexOfFirst { it.id == songId }
+                        if (index != -1) {
+                            playTrack(index)
+                        } else {
+                            handlePlay()
+                        }
+                    }
+                }
+
+                override fun onPlayFromSearch(query: String?, extras: Bundle?) {
+                    Log.i(tag, "onPlayFromSearch diterima dari RoadSync: $query")
                     handlePlay()
                 }
 
@@ -393,11 +417,35 @@ class MediaSessionService : MediaBrowserServiceCompat() {
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
-        return BrowserRoot("root_id", null)
+        Log.i(tag, "MediaBrowser client connected: $clientPackageName")
+        // Izinkan semua client termasuk Honda RoadSync (com.honda.ms.dm.sab)
+        return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
-        result.sendResult(mutableListOf())
+        val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem>()
+        val selectedName = MediaControlDispatcher.getSelectedName(this)
+
+        // 1. Playable stream item untuk Honda RoadSync
+        val streamDesc = MediaDescriptionCompat.Builder()
+            .setMediaId(MEDIA_ITEM_STREAM_ID)
+            .setTitle("▶ Putar $selectedName")
+            .setSubtitle("Kontrol Honda PCX via MotoCompanion")
+            .setDescription("Meneruskan tombol stang ke pemutar musik terpilih")
+            .build()
+        mediaItems.add(MediaBrowserCompat.MediaItem(streamDesc, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
+
+        // 2. Playable playlist items jika ada lagu lokal
+        for (song in playlist) {
+            val desc = MediaDescriptionCompat.Builder()
+                .setMediaId(song.id.toString())
+                .setTitle(song.title)
+                .setSubtitle(song.artist)
+                .build()
+            mediaItems.add(MediaBrowserCompat.MediaItem(desc, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
+        }
+
+        result.sendResult(mediaItems)
     }
 
     override fun onDestroy() {

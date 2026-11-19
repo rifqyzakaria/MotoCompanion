@@ -93,6 +93,21 @@ MotoCompanion/
 
 ---
 
+## 🏍️ Cara Menghubungkan ke Honda RoadSync di Honda PCX
+
+Agar tombol stang motor Honda PCX Anda dapat mengontrol pemutar musik (Spotify, YouTube Music, VLC, dll.) dan memunculkan judul lagu di speedometer:
+
+1. **Buka Aplikasi Honda RoadSync** di ponsel Anda.
+2. Masuk ke menu **Pengaturan Lanjutan (Settings) ➔ Sumber Musik (Music Source)**.
+3. Pilih **MotoCompanion** sebagai sumber musik utama!
+4. Di dalam aplikasi **MotoCompanion**, pilih aplikasi pemutar musik yang ingin Anda dengarkan (misal: Spotify, YouTube Music, VLC, Poweramp, dll.).
+5. **Mulai Berkendara**:
+   - Saat Honda PCX menyala dan Bluetooth terhubung, MotoCompanion otomatis aktif mendampingi di latar belakang.
+   - Di saklar stang kiri motor Honda PCX Anda, masuk ke menu **Music**.
+   - Tekan tombol **Play / Pause / Next / Prev** di stang. Perintah langsung diteruskan ke Spotify/YouTube Music Anda, dan judul lagu akan tampil di layar speedometer Honda PCX!
+
+---
+
 ## 📲 Cara Mengatur Pemutar Media di HP
 
 1. Buka **MotoCompanion** di HP Anda.

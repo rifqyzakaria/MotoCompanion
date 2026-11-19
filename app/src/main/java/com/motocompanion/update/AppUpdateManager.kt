@@ -25,7 +25,7 @@ object AppUpdateManager {
     private const val TAG = "MotoAppUpdate"
     private const val PREFS_NAME = "moto_update_prefs"
     const val KEY_GITHUB_REPO = "github_repo_path"
-    const val DEFAULT_REPO = "username/MotoCompanion"
+    const val DEFAULT_REPO = "rifqyzakaria/MotoCompanion"
 
     data class ReleaseInfo(
         val tagName: String,

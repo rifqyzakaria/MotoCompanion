@@ -116,9 +116,19 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                android:text="Buka Aplikasi"
+                android:layout_marginEnd="6dp"
+                android:text="Buka App"
+                android:textColor="@color/text_primary"
+                app:strokeColor="@color/border_color" />
+
+            <Button
+                android:id="@+id/btnTestPrev"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="4dp"
+                android:text="◀"
                 android:textColor="@color/text_primary"
                 app:strokeColor="@color/border_color" />
 
@@ -126,12 +136,21 @@
                 android:id="@+id/btnTestPlayPause"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
+                android:layout_weight="1.2"
                 android:backgroundTint="@color/accent_cyan"
-                android:text="Uji Play / Pause"
+                android:text="⏯ Play/Pause"
                 android:textColor="@color/bg_dark"
                 android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnTestNext"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:text="▶"
+                android:textColor="@color/text_primary"
+                app:strokeColor="@color/border_color" />
         </LinearLayout>
     </LinearLayout>
 

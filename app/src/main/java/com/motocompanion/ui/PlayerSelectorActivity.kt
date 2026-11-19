@@ -56,9 +56,22 @@ class PlayerSelectorActivity : AppCompatActivity() {
             MediaControlDispatcher.launchSelectedPlayer(this)
         }
 
+        binding.btnTestPrev.setOnClickListener {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+            val name = MediaControlDispatcher.getSelectedName(this)
+            Toast.makeText(this, "⏮ Lagu Sebelumnya dikirim ke $name", Toast.LENGTH_SHORT).show()
+        }
+
         binding.btnTestPlayPause.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
-            Toast.makeText(this, "Perintah Play/Pause dikirim ke $selectedPackage", Toast.LENGTH_SHORT).show()
+            val name = MediaControlDispatcher.getSelectedName(this)
+            Toast.makeText(this, "⏯ Play/Pause dikirim ke $name", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnTestNext.setOnClickListener {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
+            val name = MediaControlDispatcher.getSelectedName(this)
+            Toast.makeText(this, "Next ⏭ dikirim ke $name", Toast.LENGTH_SHORT).show()
         }
     }
 

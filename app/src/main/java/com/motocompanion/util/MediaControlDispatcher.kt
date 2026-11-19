@@ -5,20 +5,38 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioManager
+import android.media.MediaMetadata
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
 import android.net.Uri
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
 import com.motocompanion.R
 import com.motocompanion.model.InstalledPlayer
 import com.motocompanion.service.MediaSessionService
+import com.motocompanion.service.NotificationAnnouncerService
 
 object MediaControlDispatcher {
 
+    private const val TAG = "MediaControlDispatcher"
     private const val PREFS_NAME = "moto_player_prefs"
     const val KEY_SELECTED_PACKAGE = "selected_player_package"
     const val KEY_SELECTED_NAME = "selected_player_name"
     const val INTERNAL_PACKAGE_ID = "com.motocompanion.internal"
+
+    data class TrackInfo(
+        val title: String,
+        val artist: String,
+        val isPlaying: Boolean,
+        val appName: String,
+        val packageName: String
+    )
 
     fun getSelectedPackage(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -119,12 +137,122 @@ object MediaControlDispatcher {
     }
 
     /**
-     * Meneruskan perintah kontrol tombol stang / intercom ke pemutar media yang dipilih
+     * Mengambil MediaController aktif dari sistem menggunakan MediaSessionManager.
+     * Mengutamakan package aplikasi yang sedang dipilih.
      */
-    fun dispatchMediaAction(context: Context, keyCode: Int) {
-        val selectedPkg = getSelectedPackage(context)
+    fun getActiveMediaController(context: Context, targetPackage: String? = null): MediaController? {
+        val pkg = targetPackage ?: getSelectedPackage(context)
+        if (pkg == INTERNAL_PACKAGE_ID) return null
 
-        // Jika memilih pemutar internal MotoCompanion
+        try {
+            val mediaSessionManager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+                ?: return null
+            val componentName = ComponentName(context, NotificationAnnouncerService::class.java)
+            val activeSessions = mediaSessionManager.getActiveSessions(componentName)
+
+            // Cari session yang package-nya persis cocok dengan target
+            for (controller in activeSessions) {
+                if (controller.packageName.equals(pkg, ignoreCase = true)) {
+                    return controller
+                }
+            }
+
+            // Jika targetPackage tidak dispesifikasikan khusus, ambil session aktif yang sedang memutar musik
+            if (targetPackage == null) {
+                for (controller in activeSessions) {
+                    val state = controller.playbackState?.state
+                    if (state == PlaybackState.STATE_PLAYING) {
+                        return controller
+                    }
+                }
+                if (activeSessions.isNotEmpty()) {
+                    return activeSessions[0]
+                }
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Izin Notification Listener belum diberikan, tidak dapat mengakses getActiveSessions: ${e.message}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Eror saat mengambil active sessions: ${e.message}")
+        }
+        return null
+    }
+
+    /**
+     * Mengambil data lagu & status pemutaran yang sedang aktif
+     */
+    fun getActiveTrackInfo(context: Context): TrackInfo? {
+        val selectedPkg = getSelectedPackage(context)
+        val selectedName = getSelectedName(context)
+
+        // Kasus 1: Pemutar Internal
+        if (selectedPkg == INTERNAL_PACKAGE_ID) {
+            val song = MediaSessionService.currentSong
+            val isPlaying = MediaSessionService.isPlaying
+            return if (song != null) {
+                TrackInfo(
+                    title = song.title,
+                    artist = song.artist,
+                    isPlaying = isPlaying,
+                    appName = "MotoCompanion (Bawaan)",
+                    packageName = INTERNAL_PACKAGE_ID
+                )
+            } else {
+                TrackInfo(
+                    title = "Tidak ada lagu yang dipilih",
+                    artist = "Buka menu Lagu Offline",
+                    isPlaying = false,
+                    appName = "MotoCompanion (Bawaan)",
+                    packageName = INTERNAL_PACKAGE_ID
+                )
+            }
+        }
+
+        // Kasus 2: Aplikasi Pihak Ketiga (Spotify, YouTube Music, VLC, dll.)
+        val controller = getActiveMediaController(context, selectedPkg) ?: getActiveMediaController(context, null)
+        if (controller != null) {
+            val metadata = controller.metadata
+            val state = controller.playbackState
+            val isPlaying = state?.state == PlaybackState.STATE_PLAYING
+
+            val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
+                ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+                ?: "Pemutar Aktif"
+            val artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                ?: metadata?.getString(MediaMetadata.METADATA_KEY_AUTHOR)
+                ?: selectedName
+
+            return TrackInfo(
+                title = title,
+                artist = artist,
+                isPlaying = isPlaying,
+                appName = selectedName,
+                packageName = controller.packageName
+            )
+        }
+
+        return TrackInfo(
+            title = "Pemutar Siap",
+            artist = "Tekan Play untuk mulai memutar",
+            isPlaying = false,
+            appName = selectedName,
+            packageName = selectedPkg
+        )
+    }
+
+    /**
+     * Meneruskan perintah kontrol tombol stang / intercom / layar ke pemutar media yang dipilih.
+     * Menggunakan strategi multi-tier:
+     * Tier 1: MediaSessionManager -> MediaController TransportControls (Standard modern Android)
+     * Tier 2: Explicit Component Targeting (Manifest Broadcast Receiver / Service)
+     * Tier 3: Auto-Wake / Launch jika pemutar belum dibuka
+     * Tier 4: Global AudioManager Media Key Event Dispatch & Ordered Broadcast
+     */
+    fun dispatchMediaAction(context: Context, keyCode: Int, autoWakeIfDormant: Boolean = true): Boolean {
+        val selectedPkg = getSelectedPackage(context)
+        Log.i(TAG, "Dispatching media action keyCode=$keyCode to $selectedPkg")
+
+        // === 1. Jika Memilih Pemutar Internal MotoCompanion ===
         if (selectedPkg == INTERNAL_PACKAGE_ID) {
             val serviceIntent = Intent(context, MediaSessionService::class.java)
             when (keyCode) {
@@ -134,33 +262,135 @@ object MediaControlDispatcher {
                 KeyEvent.KEYCODE_HEADSETHOOK -> serviceIntent.action = MediaSessionService.ACTION_TOGGLE
                 KeyEvent.KEYCODE_MEDIA_NEXT -> serviceIntent.action = MediaSessionService.ACTION_NEXT
                 KeyEvent.KEYCODE_MEDIA_PREVIOUS -> serviceIntent.action = MediaSessionService.ACTION_PREV
+                KeyEvent.KEYCODE_MEDIA_STOP -> serviceIntent.action = MediaSessionService.ACTION_PAUSE
             }
-            context.startService(serviceIntent)
-            return
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    ContextCompat.startForegroundService(context, serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Gagal memulai MediaSessionService: ${e.message}")
+            }
+            return true
         }
 
-        // Jika memilih aplikasi pihak ketiga (Play Store / Sideload luar Play Store)
+        // Siapkan KeyEvent Down & Up
         val eventTime = SystemClock.uptimeMillis()
         val downEvent = KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN, keyCode, 0)
         val upEvent = KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP, keyCode, 0)
 
-        // 1. Kirim MediaButton Intent langsung tertuju ke package aplikasi terpilih
-        val downIntent = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
-            setPackage(selectedPkg)
-            putExtra(Intent.EXTRA_KEY_EVENT, downEvent)
-        }
-        val upIntent = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
-            setPackage(selectedPkg)
-            putExtra(Intent.EXTRA_KEY_EVENT, upEvent)
+        // === 2. TIER 1: Kontrol Langsung via MediaController TransportControls ===
+        val controller = getActiveMediaController(context, selectedPkg)
+        if (controller != null) {
+            try {
+                val transport = controller.transportControls
+                when (keyCode) {
+                    KeyEvent.KEYCODE_MEDIA_PLAY -> transport.play()
+                    KeyEvent.KEYCODE_MEDIA_PAUSE -> transport.pause()
+                    KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                    KeyEvent.KEYCODE_HEADSETHOOK -> {
+                        val state = controller.playbackState?.state
+                        if (state == PlaybackState.STATE_PLAYING) {
+                            transport.pause()
+                        } else {
+                            transport.play()
+                        }
+                    }
+                    KeyEvent.KEYCODE_MEDIA_NEXT -> transport.skipToNext()
+                    KeyEvent.KEYCODE_MEDIA_PREVIOUS -> transport.skipToPrevious()
+                    KeyEvent.KEYCODE_MEDIA_STOP -> transport.stop()
+                    else -> {
+                        controller.dispatchMediaButtonEvent(downEvent)
+                        controller.dispatchMediaButtonEvent(upEvent)
+                    }
+                }
+                // Kirim juga event key langsung ke controller sebagai penguat
+                controller.dispatchMediaButtonEvent(downEvent)
+                controller.dispatchMediaButtonEvent(upEvent)
+                Log.i(TAG, "Berhasil mengontrol $selectedPkg via MediaController TransportControls")
+                return true
+            } catch (e: Exception) {
+                Log.w(TAG, "TransportControls gagal, beralih ke strategi berikutnya: ${e.message}")
+            }
         }
 
-        context.sendOrderedBroadcast(downIntent, null)
-        context.sendOrderedBroadcast(upIntent, null)
+        // === 3. TIER 2: Pengiriman Intent Eksplisit ke ComponentReceiver / ComponentService ===
+        val pm = context.packageManager
+        var explicitHandled = false
 
-        // 2. Sebagai penguat: gunakan AudioManager dispatch
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        audioManager.dispatchMediaKeyEvent(downEvent)
-        audioManager.dispatchMediaKeyEvent(upEvent)
+        // 3a. Cari BroadcastReceiver di aplikasi target yang merespons ACTION_MEDIA_BUTTON
+        try {
+            val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON).setPackage(selectedPkg)
+            val receivers = pm.queryBroadcastReceivers(mediaButtonIntent, 0)
+            for (resolveInfo in receivers) {
+                val comp = ComponentName(selectedPkg, resolveInfo.activityInfo.name)
+                val explicitDown = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
+                    component = comp
+                    putExtra(Intent.EXTRA_KEY_EVENT, downEvent)
+                }
+                val explicitUp = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
+                    component = comp
+                    putExtra(Intent.EXTRA_KEY_EVENT, upEvent)
+                }
+                context.sendBroadcast(explicitDown)
+                context.sendBroadcast(explicitUp)
+                explicitHandled = true
+                Log.i(TAG, "Mengirim explicit broadcast ke component $comp")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Explicit broadcast gagal: ${e.message}")
+        }
+
+        // === 4. TIER 3: Bangunkan Aplikasi jika sedang tertidur dan diperintahkan Play ===
+        val isPlayAction = (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
+                keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE ||
+                keyCode == KeyEvent.KEYCODE_HEADSETHOOK)
+
+        if (autoWakeIfDormant && isPlayAction && controller == null) {
+            try {
+                val launchIntent = pm.getLaunchIntentForPackage(selectedPkg)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                    context.startActivity(launchIntent)
+                    Log.i(TAG, "Membangunkan aplikasi $selectedPkg ke latar depan untuk memulai musik")
+
+                    // Berikan jeda sejenak agar app terbuka, lalu kirim play
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                        val wakeDown = KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY, 0)
+                        val wakeUp = KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY, 0)
+                        audioManager.dispatchMediaKeyEvent(wakeDown)
+                        audioManager.dispatchMediaKeyEvent(wakeUp)
+                    }, 700)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Gagal membangunkan aplikasi: ${e.message}")
+            }
+        }
+
+        // === 5. TIER 4: Global AudioManager Media Key Event Dispatch & Ordered Broadcast ===
+        try {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.dispatchMediaKeyEvent(downEvent)
+            audioManager.dispatchMediaKeyEvent(upEvent)
+
+            val downBroadcast = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
+                setPackage(selectedPkg)
+                putExtra(Intent.EXTRA_KEY_EVENT, downEvent)
+            }
+            val upBroadcast = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
+                setPackage(selectedPkg)
+                putExtra(Intent.EXTRA_KEY_EVENT, upEvent)
+            }
+            context.sendOrderedBroadcast(downBroadcast, null)
+            context.sendOrderedBroadcast(upBroadcast, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "Gagal dispatch AudioManager key event: ${e.message}")
+        }
+
+        return true
     }
 
     /**

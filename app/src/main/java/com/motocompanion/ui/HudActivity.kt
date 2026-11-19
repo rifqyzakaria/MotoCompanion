@@ -28,6 +28,7 @@ class HudActivity : AppCompatActivity() {
     private val clockRunnable = object : Runnable {
         override fun run() {
             binding.tvHudClock.text = timeFormat.format(Date())
+            updateHudMediaInfo()
             clockHandler.postDelayed(this, 1000)
         }
     }
@@ -61,14 +62,17 @@ class HudActivity : AppCompatActivity() {
         // Kontrol Media Cepat di Layar HUD
         binding.btnHudPlayPause.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+            clockHandler.postDelayed({ updateHudMediaInfo() }, 300)
         }
 
         binding.btnHudNext.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
+            clockHandler.postDelayed({ updateHudMediaInfo() }, 300)
         }
 
         binding.btnHudPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+            clockHandler.postDelayed({ updateHudMediaInfo() }, 300)
         }
 
         clockHandler.post(clockRunnable)
@@ -77,9 +81,7 @@ class HudActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         enableImmersiveMode()
-
-        val activePlayer = MediaControlDispatcher.getSelectedName(this)
-        binding.tvActivePlayerHud.text = "🎵 $activePlayer"
+        updateHudMediaInfo()
 
         val filter = IntentFilter(GpsTrackingService.BROADCAST_GPS_UPDATE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -118,6 +120,18 @@ class HudActivity : AppCompatActivity() {
         // Informasi Tambahan
         binding.tvAltitude.text = String.format(Locale.getDefault(), "Ketinggian: %d mdpl", altitude.toInt())
         binding.tvGpsAccuracy.text = String.format(Locale.getDefault(), "GPS: ±%.0fm", accuracy)
+    }
+
+    private fun updateHudMediaInfo() {
+        val track = MediaControlDispatcher.getActiveTrackInfo(this)
+        if (track != null && track.title.isNotBlank()) {
+            val status = if (track.isPlaying) "▶" else "⏸"
+            binding.tvActivePlayerHud.text = "$status ${track.title} (${track.appName})"
+            binding.btnHudPlayPause.text = if (track.isPlaying) "⏸" else "▶"
+        } else {
+            val activePlayer = MediaControlDispatcher.getSelectedName(this)
+            binding.tvActivePlayerHud.text = "🎵 $activePlayer"
+        }
     }
 
     private fun enableImmersiveMode() {

@@ -21,6 +21,8 @@ import com.motocompanion.App
 import com.motocompanion.R
 import com.motocompanion.model.Song
 import com.motocompanion.ui.MusicActivity
+import com.motocompanion.util.MediaControlDispatcher
+import android.view.KeyEvent
 
 class MediaSessionService : MediaBrowserServiceCompat() {
 
@@ -69,31 +71,43 @@ class MediaSessionService : MediaBrowserServiceCompat() {
 
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
-                    playTrack(currentIndex)
+                    handlePlay()
                 }
 
                 override fun onPause() {
-                    pauseTrack()
+                    handlePause()
                 }
 
                 override fun onSkipToNext() {
-                    nextTrack()
+                    handleNext()
                 }
 
                 override fun onSkipToPrevious() {
-                    prevTrack()
+                    handlePrev()
                 }
 
                 override fun onStop() {
-                    stopTrack()
+                    handleStop()
                 }
 
                 override fun onCustomAction(action: String?, extras: Bundle?) {
                     when (action) {
-                        ACTION_TOGGLE -> {
-                            if (isPlaying) pauseTrack() else playTrack(currentIndex)
+                        ACTION_TOGGLE -> handleToggle()
+                    }
+                }
+
+                override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+                    @Suppress("DEPRECATION")
+                    val keyEvent = mediaButtonEvent?.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                    if (keyEvent != null && keyEvent.action == KeyEvent.ACTION_DOWN) {
+                        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this@MediaSessionService)
+                        if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+                            MediaControlDispatcher.dispatchMediaAction(this@MediaSessionService, keyEvent.keyCode)
+                            updateExternalPlayerMetadata()
+                            return true
                         }
                     }
+                    return super.onMediaButtonEvent(mediaButtonEvent)
                 }
             })
 
@@ -287,13 +301,95 @@ class MediaSessionService : MediaBrowserServiceCompat() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         when (intent?.action) {
-            ACTION_PLAY -> if (!isPlaying) playTrack(currentIndex)
-            ACTION_PAUSE -> if (isPlaying) pauseTrack()
-            ACTION_NEXT -> nextTrack()
-            ACTION_PREV -> prevTrack()
-            ACTION_TOGGLE -> if (isPlaying) pauseTrack() else playTrack(currentIndex)
+            ACTION_PLAY -> handlePlay()
+            ACTION_PAUSE -> handlePause()
+            ACTION_NEXT -> handleNext()
+            ACTION_PREV -> handlePrev()
+            ACTION_TOGGLE -> handleToggle()
         }
         return START_STICKY
+    }
+
+    private fun handlePlay() {
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            if (!isPlaying) playTrack(currentIndex)
+        } else {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY)
+            updateExternalPlayerMetadata()
+        }
+    }
+
+    private fun handlePause() {
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            if (isPlaying) pauseTrack()
+        } else {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PAUSE)
+            updateExternalPlayerMetadata()
+        }
+    }
+
+    private fun handleNext() {
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            nextTrack()
+        } else {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
+            updateExternalPlayerMetadata()
+        }
+    }
+
+    private fun handlePrev() {
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            prevTrack()
+        } else {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+            updateExternalPlayerMetadata()
+        }
+    }
+
+    private fun handleToggle() {
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            if (isPlaying) pauseTrack() else playTrack(currentIndex)
+        } else {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+            updateExternalPlayerMetadata()
+        }
+    }
+
+    private fun handleStop() {
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            stopTrack()
+        } else {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_STOP)
+            updateExternalPlayerMetadata()
+        }
+    }
+
+    fun updateExternalPlayerMetadata() {
+        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this) ?: return
+        val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, trackInfo.title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, trackInfo.artist)
+            .build()
+        mediaSession.setMetadata(metadata)
+
+        val state = if (trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+        val playbackState = PlaybackStateCompat.Builder()
+            .setActions(
+                PlaybackStateCompat.ACTION_PLAY or
+                        PlaybackStateCompat.ACTION_PAUSE or
+                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                        PlaybackStateCompat.ACTION_STOP
+            )
+            .setState(state, 0L, 1.0f)
+            .build()
+        mediaSession.setPlaybackState(playbackState)
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {

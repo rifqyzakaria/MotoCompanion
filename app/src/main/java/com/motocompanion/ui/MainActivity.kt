@@ -10,6 +10,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.os.Handler
+import android.os.Looper
+import android.view.KeyEvent
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +31,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val locationPermissionReqCode = 101
 
+    private val trackUpdateHandler = Handler(Looper.getMainLooper())
+    private val trackUpdateRunnable = object : Runnable {
+        override fun run() {
+            updateTrackInfoUi()
+            trackUpdateHandler.postDelayed(this, 2000)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -45,10 +56,38 @@ class MainActivity : AppCompatActivity() {
         updatePermissionStatuses()
         updateActivePlayerName()
         updateGithubRepoUi()
+        trackUpdateHandler.post(trackUpdateRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        trackUpdateHandler.removeCallbacks(trackUpdateRunnable)
     }
 
     private fun setupListeners() {
-        // Kontrol Pemutar Media (Pihak Ketiga / Play Store / Luar Play Store)
+        // Kontrol Cepat Pemutar Media Terpilih (Dashboard Utama)
+        binding.btnMainPrev.setOnClickListener {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+            val name = MediaControlDispatcher.getSelectedName(this)
+            Toast.makeText(this, "⏮ Lagu Sebelumnya dikirim ke $name", Toast.LENGTH_SHORT).show()
+            trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
+        }
+
+        binding.btnMainPlayPause.setOnClickListener {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+            val name = MediaControlDispatcher.getSelectedName(this)
+            Toast.makeText(this, "⏯ Play/Pause dikirim ke $name", Toast.LENGTH_SHORT).show()
+            trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
+        }
+
+        binding.btnMainNext.setOnClickListener {
+            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
+            val name = MediaControlDispatcher.getSelectedName(this)
+            Toast.makeText(this, "Next ⏭ dikirim ke $name", Toast.LENGTH_SHORT).show()
+            trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
+        }
+
+        // Pengaturan & Pemilihan Pemutar Media
         binding.btnChangePlayer.setOnClickListener {
             startActivity(Intent(this, PlayerSelectorActivity::class.java))
         }
@@ -171,6 +210,23 @@ class MainActivity : AppCompatActivity() {
     private fun updateActivePlayerName() {
         val selectedName = MediaControlDispatcher.getSelectedName(this)
         binding.tvActivePlayerName.text = selectedName
+        updateTrackInfoUi()
+    }
+
+    private fun updateTrackInfoUi() {
+        val track = MediaControlDispatcher.getActiveTrackInfo(this)
+        if (track != null && track.title.isNotBlank()) {
+            binding.tvActiveTrackInfo.text = "🎵 ${track.title} • ${track.artist}"
+            if (track.isPlaying) {
+                binding.tvActiveTrackState.text = "Memutar"
+                binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
+                binding.btnMainPlayPause.text = "⏸ Jeda"
+            } else {
+                binding.tvActiveTrackState.text = "Jeda / Siap"
+                binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
+                binding.btnMainPlayPause.text = "▶ Putar"
+            }
+        }
     }
 
     private fun loadPreferences() {

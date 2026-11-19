@@ -6,11 +6,16 @@
 
 ## 🚀 Fitur Utama
 
-1. **Pemilih Pemutar Media & Video Pihak Ketiga (`MediaControlDispatcher` & `PlayerSelectorActivity`)**
-   - Mendeteksi secara otomatis seluruh pemutar audio & video yang terinstal di HP Anda (baik dari **Google Play Store** maupun dari **luar Play Store / sideload APK pihak ketiga / buatan sendiri** seperti VLC, Poweramp, MX Player, Spotify, YouTube ReVanced, Musicolet, dll.).
+1. **Pemilih & Kontrol Pemutar Media Fleksibel (`MediaControlDispatcher` & `PlayerSelectorActivity`)**
+   - Mendeteksi secara otomatis seluruh pemutar audio & video yang terinstal di HP Anda (baik dari **Google Play Store** maupun dari **luar Play Store / sideload APK pihak ketiga / buatan sendiri** seperti VLC, Poweramp, MX Player, Spotify, YouTube Music, YouTube ReVanced, Musicolet, dll.).
    - Dilengkapi saklar *"Tampilkan seluruh aplikasi terinstal"* untuk memastikan aplikasi kustom apapun yang Anda buat dapat dipilih.
+   - **Multi-Tier Control Engine**:
+     - *Tier 1:* Direct `MediaSessionManager` & `MediaController` TransportControls (kontrol resmi Android modern untuk Spotify, YouTube Music, VLC, dll.).
+     - *Tier 2:* Explicit Component Targeting untuk pemutar background/dormant (lolos restriksi Android 8.0+).
+     - *Tier 3:* Auto-Wake and Launch jika pemutar belum dibuka.
+     - *Tier 4:* Global `AudioManager` Media Key Event & Ordered Broadcast.
    - **Tombol navigasi stang motor Honda** dan **tombol fisik intercom helm** (Play, Pause, Next, Prev) langsung diteruskan secara otomatis ke aplikasi pemutar yang sedang Anda pilih!
-   - Tombol cepat **"Buka Aplikasi Ini"** dan **"Uji Play / Pause"** langsung di layar dashboard & layar HUD stang.
+   - **Tampilan Info Lagu & Kontrol Langsung di Dashboard & Layar HUD**: Menampilkan judul lagu yang sedang berputar di aplikasi pihak ketiga secara *live* beserta tombol kontrol cepat (⏮ Prev, ⏯ Play/Pause, Next ⏭).
 
 2. **Deteksi & Pembaca Panggilan WhatsApp Otomatis (`NotificationAnnouncerService`)**
    - Mendeteksi panggilan suara/video WhatsApp masuk secara *real-time*.

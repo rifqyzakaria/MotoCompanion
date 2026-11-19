@@ -1,0 +1,9 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "android.sdk": "/home/antigravity/android-sdk",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.gradle": true,
+        "**/build": false
+    }
+}

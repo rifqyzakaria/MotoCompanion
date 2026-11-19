@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MotoCompanion</string>
+    <string name="service_announcer_name">Pengumum Panggilan WA &amp; Pesan Motor</string>
+
+    <string name="title_dashboard">MOTO COMPANION</string>
+    <string name="subtitle_dashboard">Pendamping Honda RoadSync untuk Panggilan WA &amp; Navigasi Stabil</string>
+
+    <string name="status_notification_access">Akses Notifikasi</string>
+    <string name="status_battery_optimization">Optimasi Baterai</string>
+    <string name="status_location">Izin GPS</string>
+
+    <string name="btn_grant">Aktifkan</string>
+    <string name="btn_granted">Sudah Aktif</string>
+
+    <string name="toggle_whatsapp_calls">Umumkan Panggilan Suara WhatsApp</string>
+    <string name="toggle_whatsapp_messages">Bacakan Pesan WhatsApp Masuk</string>
+    <string name="toggle_gps_stabilizer">Kunci Arah GPS (Anti-Peta Berputar)</string>
+
+    <string name="btn_test_voice">Tes Suara Intercom</string>
+    <string name="btn_test_call">Simulasi Panggilan WA Masuk</string>
+    <string name="btn_open_hud">Buka Moto HUD (Layar Stang)</string>
+    <string name="btn_open_music">Pemutar Musik Kustom</string>
+</resources>

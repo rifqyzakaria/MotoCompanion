@@ -53,23 +53,23 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MotoCompanion-v1.2.2-APK
+          name: MotoCompanion-v1.3.0-APK
           path: release_assets/MotoCompanion.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: v1.2.2
-          name: "MotoCompanion v1.2.2 (Smart RoadSync Auto-Sync & WhatsApp Voice Announcer)"
+          tag_name: v1.3.0
+          name: "MotoCompanion v1.3.0 (Spotify Integration for Honda RoadSync)"
           body: |
-            ### 🏍️ MotoCompanion v1.2.2 (Sinkronisasi Otomatis Honda RoadSync & WhatsApp)
+            ### 🏍️ MotoCompanion v1.3.0 (Integrasi Menu Sumber Musik Honda RoadSync)
 
-            Pembaruan khusus pendamping resmi Honda RoadSync & Honda PCX:
-            - 🔄 **Auto-Active saat RoadSync Dibuka**: MotoCompanion otomatis aktif mendampingi ketika Honda RoadSync dibuka / notifikasi RoadSync berjalan di latar belakang.
-            - 🔇 **Filter Pintar WhatsApp**: MotoCompanion HANYA membacakan pesan dan panggilan suara/video WhatsApp saat Honda RoadSync sedang aktif berkendara (tidak akan mengumumkan pesan saat di rumah atau motor mati).
-            - 🏍️ **PCX TFT & BitChord Ready**: Bekerja harmonis dengan layar TFT Honda PCX dan BitChord tanpa bentrok audio.
-            - 🔑 **Consistent Keystore Signing**: Update in-app berikutnya dijamin 100% mulus dengan tanda tangan kunci yang seragam.
+            Pembaruan khusus penyamaran paket resmi untuk Honda RoadSync:
+            - 🎵 **Muncul di Menu "Sumber Musik" Honda RoadSync**: Menggunakan `applicationId = com.spotify.music` sehingga langsung dikenali dan dipilih di menu Sumber Musik RoadSync.
+            - 🎮 **Rute Tombol Stang PCX ke BitChord**: Saat dipilih di RoadSync, seluruh tombol stang (Next, Prev, Play, Pause) diteruskan langsung ke pemutar musik aktif Anda (BitChord/lainnya).
+            - 📟 **Judul Lagu di Layar TFT Speedometer**: Mengirimkan judul lagu dan artis yang sedang diputar di BitChord langsung ke speedometer Honda PCX via protokol RoadSync MediaSession.
+            - 🔄 **Auto-Active & WhatsApp Announcer**: Tetap mempertahankan fitur otomatis aktif dan pembaca pesan/telepon WhatsApp hanya saat berkendara.
           files: release_assets/MotoCompanion.apk
           draft: false
           prerelease: false

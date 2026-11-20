@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_dark">#0D1117</color>
-    <color name="bg_card">#161B22</color>
-    <color name="bg_card_secondary">#21262D</color>
-    <color name="accent_cyan">#00E5FF</color>
-    <color name="accent_cyan_glow">#3300E5FF</color>
-    <color name="accent_green">#00E676</color>
-    <color name="accent_amber">#FFB300</color>
-    <color name="accent_red">#FF5252</color>
-    <color name="text_primary">#F0F6FC</color>
-    <color name="text_secondary">#8B949E</color>
-    <color name="text_muted">#484F58</color>
-    <color name="border_color">#30363D</color>
+    <!-- Backgrounds -->
+    <color name="bg_dark">#F4F6F9</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_card_secondary">#E9ECEF</color>
+    <color name="border_color">#D0D7DE</color>
+
+    <!-- Accents (Deep contrast for light mode) -->
+    <color name="accent_cyan">#00838F</color>
+    <color name="accent_cyan_glow">#2000838F</color>
+    <color name="accent_green">#1A7F37</color>
+    <color name="accent_amber">#B76E00</color>
+    <color name="accent_red">#CF222E</color>
+
+    <!-- Typography -->
+    <color name="text_primary">#1F2328</color>
+    <color name="text_secondary">#57606A</color>
+    <color name="text_muted">#8C959F</color>
+
+    <!-- UI Elements -->
+    <color name="btn_text_on_cyan">#FFFFFF</color>
+    <color name="icon_circle_bg">#1A00838F</color>
+    <color name="icon_circle_stroke">#4D00838F</color>
+
+    <!-- Handlebar HUD (Always dark OLED for night vision & safety) -->
+    <color name="hud_bg">#0D1117</color>
+    <color name="hud_text_primary">#F0F6FC</color>
+    <color name="hud_text_secondary">#8B949E</color>
+    <color name="hud_accent_cyan">#00E5FF</color>
+    <color name="hud_accent_green">#00E676</color>
 </resources>

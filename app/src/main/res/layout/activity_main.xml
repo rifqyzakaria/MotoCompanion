@@ -71,7 +71,7 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
-                android:text="⚪ STANDBY"
+                android:text="@string/status_standby"
                 android:textColor="@color/text_secondary"
                 android:textSize="10sp"
                 android:textStyle="bold" />
@@ -90,7 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:letterSpacing="0.06"
-            android:text="KONEKSI MOTOR HONDA ROADSYNC"
+            android:text="@string/section_connection"
             android:textColor="@color/accent_cyan"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -119,7 +119,7 @@
                         android:id="@+id/tvRoadSyncStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Honda RoadSync: Siap Dampingi"
+                        android:text="@string/roadsync_status_ready"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -129,7 +129,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
-                        android:text="Bluetooth Motor: Menunggu Koneksi..."
+                        android:text="@string/bt_waiting"
                         android:textColor="@color/accent_amber"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -139,7 +139,7 @@
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="38dp"
-                    android:text="Aktifkan"
+                    android:text="@string/btn_turn_on"
                     android:textColor="@color/accent_green"
                     android:textSize="12sp"
                     app:cornerRadius="19dp"
@@ -158,7 +158,7 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:text="Buka RoadSync"
+                    android:text="@string/btn_launch_roadsync"
                     android:textColor="@color/accent_cyan"
                     android:textSize="12sp" />
 
@@ -168,7 +168,7 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:text="Panduan Motor"
+                    android:text="@string/btn_bike_guide"
                     android:textColor="@color/accent_amber"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -190,7 +190,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Otomatis nyala &amp; mati mengikuti kontak motor"
+                    android:text="@string/switch_auto_start"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
 
@@ -208,7 +208,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:letterSpacing="0.06"
-            android:text="KONTROL PEMUTAR MUSIK (TFT &amp; STANG)"
+            android:text="@string/section_media_control"
             android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -236,7 +236,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pemutar Terpilih"
+                        android:text="@string/label_selected_player"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
 
@@ -256,7 +256,7 @@
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="Ganti"
+                    android:text="@string/btn_change"
                     android:textColor="@color/accent_cyan"
                     android:textSize="12sp"
                     app:cornerRadius="18dp"
@@ -283,7 +283,7 @@
                     android:layout_weight="1"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:text="🎵 Belum ada lagu yang diputar"
+                    android:text="@string/no_music_playing"
                     android:textColor="@color/accent_cyan"
                     android:textSize="13sp" />
 
@@ -297,7 +297,7 @@
                     android:paddingTop="2dp"
                     android:paddingEnd="8dp"
                     android:paddingBottom="2dp"
-                    android:text="Siap"
+                    android:text="@string/state_paused"
                     android:textColor="@color/text_secondary"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -317,7 +317,7 @@
                     android:layout_height="44dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:text="⏮ Prev"
+                    android:text="@string/btn_prev"
                     android:textColor="@color/text_primary"
                     android:textSize="12sp"
                     app:cornerRadius="10dp"
@@ -329,8 +329,8 @@
                     android:layout_height="46dp"
                     android:layout_weight="1.3"
                     android:backgroundTint="@color/accent_cyan"
-                    android:text="⏯ Putar"
-                    android:textColor="@color/bg_dark"
+                    android:text="@string/btn_play"
+                    android:textColor="@color/btn_text_on_cyan"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     app:cornerRadius="10dp" />
@@ -342,7 +342,7 @@
                     android:layout_height="44dp"
                     android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:text="Next ⏭"
+                    android:text="@string/btn_next"
                     android:textColor="@color/text_primary"
                     android:textSize="12sp"
                     app:cornerRadius="10dp"
@@ -361,7 +361,7 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:text="Buka Pemutar Ini"
+                    android:text="@string/btn_launch_player"
                     android:textColor="@color/accent_green"
                     android:textSize="12sp" />
 
@@ -371,7 +371,7 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:text="Lagu Offline"
+                    android:text="@string/btn_offline_music"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -383,7 +383,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:letterSpacing="0.06"
-            android:text="PENGUMUM SUARA &amp; INTERCOM"
+            android:text="@string/section_announcer"
             android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -419,7 +419,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Sebut nama pemanggil saat motor berjalan"
+                        android:text="@string/toggle_whatsapp_calls_sub"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -461,7 +461,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bacakan isi chat pesan WA ke helm intercom"
+                        android:text="@string/toggle_whatsapp_messages_sub"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -503,7 +503,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Kunci arah kompas agar peta tidak berputar"
+                        android:text="@string/toggle_gps_stabilizer_sub"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -528,7 +528,7 @@
                     android:layout_height="38dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:text="Tes Intercom"
+                    android:text="@string/btn_test_intercom"
                     android:textColor="@color/accent_cyan"
                     android:textSize="12sp"
                     app:cornerRadius="8dp"
@@ -541,7 +541,7 @@
                     android:layout_height="38dp"
                     android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:text="Tes Panggilan WA"
+                    android:text="@string/btn_test_call"
                     android:textColor="@color/accent_green"
                     android:textSize="12sp"
                     app:cornerRadius="8dp"
@@ -549,13 +549,131 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 4. KARTU IZIN SISTEM & PEMBARUAN GITHUB -->
+        <!-- 4. KARTU TAMPILAN & PENGATURAN BAHASA (NEW) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:letterSpacing="0.06"
-            android:text="STATUS IZIN SISTEM &amp; PEMBARUAN"
+            android:text="@string/section_display_and_language"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:background="@drawable/bg_rounded_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Baris 1: Bahasa Aplikasi -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_language_title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCurrentLanguage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/lang_indonesian"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnSelectLanguage"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="@string/btn_change"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp"
+                    app:strokeColor="@color/border_color" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/border_color" />
+
+            <!-- Baris 2: Mode Tampilan / Tema -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_theme_title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCurrentTheme"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/theme_system"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnSelectTheme"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="@string/btn_change"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp"
+                    app:strokeColor="@color/border_color" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 5. KARTU IZIN SISTEM & PEMBARUAN GITHUB -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:letterSpacing="0.06"
+            android:text="@string/section_permissions"
             android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -581,7 +699,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Akses Notifikasi"
+                    android:text="@string/status_notification_access"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp" />
 
@@ -591,7 +709,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="Aktif"
+                    android:text="@string/btn_granted"
                     android:textColor="@color/accent_green"
                     android:textSize="12sp" />
 
@@ -600,7 +718,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="Atur"
+                    android:text="@string/btn_configure"
                     android:textColor="@color/accent_cyan"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -625,7 +743,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Optimasi Baterai"
+                    android:text="@string/status_battery_optimization"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp" />
 
@@ -635,7 +753,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="Tidak Dibatasi"
+                    android:text="@string/status_granted_battery"
                     android:textColor="@color/accent_green"
                     android:textSize="12sp" />
 
@@ -644,7 +762,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="Atur"
+                    android:text="@string/btn_configure"
                     android:textColor="@color/accent_cyan"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -669,7 +787,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Izin Lokasi GPS"
+                    android:text="@string/status_location"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp" />
 
@@ -679,7 +797,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="Aktif"
+                    android:text="@string/btn_granted"
                     android:textColor="@color/accent_green"
                     android:textSize="12sp" />
 
@@ -688,7 +806,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="Atur"
+                    android:text="@string/btn_configure"
                     android:textColor="@color/accent_cyan"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -717,7 +835,7 @@
                         android:id="@+id/tvCurrentVersion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Versi Saat Ini: v1.4.0"
+                        android:text="Versi Saat Ini: v1.5.0"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -738,7 +856,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="Ubah"
+                    android:text="@string/btn_change"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -749,7 +867,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="42dp"
                 android:layout_marginTop="8dp"
-                android:text="Periksa Pembaruan GitHub"
+                android:text="@string/btn_check_update"
                 android:textColor="@color/accent_cyan"
                 android:textSize="12sp"
                 app:cornerRadius="8dp"
@@ -764,7 +882,7 @@
             android:layout_marginTop="4dp"
             android:backgroundTint="@color/accent_cyan"
             android:text="@string/btn_open_hud"
-            android:textColor="@color/bg_dark"
+            android:textColor="@color/btn_text_on_cyan"
             android:textSize="14sp"
             android:textStyle="bold"
             app:cornerRadius="12dp" />

@@ -12,6 +12,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.motocompanion.R
 import com.motocompanion.databinding.ActivityHudBinding
 import com.motocompanion.service.GpsTrackingService
 import com.motocompanion.util.MediaControlDispatcher
@@ -115,11 +116,11 @@ class HudActivity : AppCompatActivity() {
 
         // Teks Arah & Derajat
         binding.tvCardinalDirection.text = cardinal
-        binding.tvBearingDegrees.text = String.format(Locale.getDefault(), "%03d° (Kunci GPS)", bearing.toInt())
+        binding.tvBearingDegrees.text = getString(R.string.hud_bearing_locked, bearing.toInt())
 
         // Informasi Tambahan
-        binding.tvAltitude.text = String.format(Locale.getDefault(), "Ketinggian: %d mdpl", altitude.toInt())
-        binding.tvGpsAccuracy.text = String.format(Locale.getDefault(), "GPS: ±%.0fm", accuracy)
+        binding.tvAltitude.text = getString(R.string.hud_altitude_format, altitude.toInt())
+        binding.tvGpsAccuracy.text = getString(R.string.hud_gps_accuracy_format, accuracy)
     }
 
     private fun updateHudMediaInfo() {
@@ -130,7 +131,7 @@ class HudActivity : AppCompatActivity() {
             binding.btnHudPlayPause.text = if (track.isPlaying) "⏸" else "▶"
         } else {
             val activePlayer = MediaControlDispatcher.getSelectedName(this)
-            binding.tvActivePlayerHud.text = "🎵 $activePlayer"
+            binding.tvActivePlayerHud.text = getString(R.string.hud_player_format, activePlayer)
         }
     }
 

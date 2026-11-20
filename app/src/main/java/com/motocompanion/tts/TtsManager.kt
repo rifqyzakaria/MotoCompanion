@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.motocompanion.util.LocaleThemeManager
 import java.util.Locale
 import java.util.UUID
 
@@ -33,15 +34,16 @@ class TtsManager(private val context: Context) : TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val indonesianLocale = Locale("id", "ID")
-            val result = tts?.setLanguage(indonesianLocale)
-
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.w(tag, "Bahasa Indonesia tidak tersedia langsung, mencoba fallback ke default sistem")
-                tts?.setLanguage(Locale.getDefault())
-            } else {
-                Log.i(tag, "TTS Bahasa Indonesia berhasil diinisialisasi")
+            val savedLang = LocaleThemeManager.getLanguage(context)
+            val targetLocale = when (savedLang) {
+                LocaleThemeManager.LANG_EN -> Locale.ENGLISH
+                LocaleThemeManager.LANG_IN -> Locale("id", "ID")
+                else -> {
+                    val def = Locale.getDefault()
+                    if (def.language.equals("en", ignoreCase = true)) Locale.ENGLISH else Locale("id", "ID")
+                }
             }
+            setLanguage(targetLocale)
 
             tts?.setSpeechRate(speechRate)
             tts?.setPitch(1.0f)
@@ -49,6 +51,16 @@ class TtsManager(private val context: Context) : TextToSpeech.OnInitListener {
             isInitialized = true
         } else {
             Log.e(tag, "Gagal menginisialisasi TextToSpeech, status: $status")
+        }
+    }
+
+    fun setLanguage(locale: Locale) {
+        val result = tts?.setLanguage(locale)
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+            Log.w(tag, "Bahasa $locale tidak tersedia langsung, mencoba fallback ke default sistem")
+            tts?.setLanguage(Locale.getDefault())
+        } else {
+            Log.i(tag, "TTS bahasa berhasil disetel ke: $locale")
         }
     }
 

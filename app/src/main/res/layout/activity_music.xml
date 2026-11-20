@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="Pemutar Musik Mandiri"
+            android:text="@string/music_title"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -39,7 +39,7 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Muat Ulang"
+            android:text="@string/music_reload"
             android:textColor="@color/accent_cyan" />
     </LinearLayout>
 
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="marquee"
             android:singleLine="true"
-            android:text="Pilih lagu untuk memulai"
+            android:text="@string/music_select_track"
             android:textColor="@color/accent_cyan"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -76,7 +76,7 @@
             android:id="@+id/tvCurrentPlayingArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bisa dikendalikan lewat tombol stang motor"
+            android:text="@string/music_handlebar_hint"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
 
@@ -105,7 +105,7 @@
                 android:layout_height="56dp"
                 android:backgroundTint="@color/accent_cyan"
                 android:text="PLAY"
-                android:textColor="@color/bg_dark"
+                android:textColor="@color/btn_text_on_cyan"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 

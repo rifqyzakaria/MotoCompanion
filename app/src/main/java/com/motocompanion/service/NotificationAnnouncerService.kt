@@ -134,7 +134,7 @@ class NotificationAnnouncerService : NotificationListenerService() {
             .trim()
 
         if (caller.isBlank()) {
-            caller = "Nomor Tidak Dikenal"
+            caller = getString(R.string.unknown_caller)
         }
 
         // Cegah spam suara saat nada dering terus memperbarui notifikasi
@@ -145,7 +145,7 @@ class NotificationAnnouncerService : NotificationListenerService() {
         lastCallerName = caller
         lastCallAnnouncementTime = now
 
-        val speech = "Telepon WhatsApp masuk dari $caller"
+        val speech = getString(R.string.tts_incoming_call, caller)
         Log.i(tag, "Mengumumkan panggilan: $speech")
 
         App.instance.ttsManager.speak(speech, isPriority = true)
@@ -164,7 +164,7 @@ class NotificationAnnouncerService : NotificationListenerService() {
         val cleanSender = if (sender.isNotBlank()) sender else "WhatsApp"
         val cleanBody = SlangNormalizer.normalize(message)
 
-        val speech = "Pesan dari $cleanSender: $cleanBody"
+        val speech = getString(R.string.tts_incoming_message, cleanSender, cleanBody)
         Log.i(tag, "Membacakan pesan: $speech")
 
         App.instance.ttsManager.speak(speech, isPriority = false)

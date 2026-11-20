@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import com.motocompanion.tts.TtsManager
+import com.motocompanion.util.LocaleThemeManager
 
 class App : Application() {
 
@@ -25,6 +26,9 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        LocaleThemeManager.applySavedTheme(this)
+        LocaleThemeManager.applySavedLanguage(this)
 
         createNotificationChannels()
         ttsManager = TtsManager(this)

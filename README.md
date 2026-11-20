@@ -1,6 +1,6 @@
 # 🏍️ H-Sync (Pendamping Cerdas Honda RoadSync)
 
-**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (*companion app*) Android yang dirancang khusus untuk bekerja berdampingan dengan **Honda RoadSync (HSVCS)** di seluruh lini motor Honda yang mendukung konektivitas RoadSync (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok atau kendala koneksi Bluetooth.
+**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) Android yang dirancang khusus untuk bekerja berdampingan dengan **Honda RoadSync (HSVCS)** di seluruh lini motor Honda yang mendukung konektivitas RoadSync (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok atau kendala koneksi Bluetooth.
 
 ---
 
@@ -8,30 +8,37 @@
 
 1. **Pemilih & Kontrol Pemutar Media Fleksibel (`MediaControlDispatcher` & `PlayerSelectorActivity`)**
    - Mendeteksi secara otomatis seluruh pemutar audio & video yang terinstal di HP Anda (baik dari **Google Play Store** maupun dari **luar Play Store / sideload APK pihak ketiga / buatan sendiri** seperti VLC, Poweramp, MX Player, Spotify, YouTube Music, YouTube ReVanced, Musicolet, dll.).
-   - Dilengkapi saklar *"Tampilkan seluruh aplikasi terinstal"* untuk memastikan aplikasi kustom apapun yang Anda buat dapat dipilih.
+   - Dilengkapi saklar _"Tampilkan seluruh aplikasi terinstal"_ untuk memastikan aplikasi kustom apapun yang Anda buat dapat dipilih.
    - **Multi-Tier Control Engine**:
-     - *Tier 1:* Direct `MediaSessionManager` & `MediaController` TransportControls (kontrol resmi Android modern untuk Spotify, YouTube Music, VLC, dll.).
-     - *Tier 2:* Explicit Component Targeting untuk pemutar background/dormant (lolos restriksi Android 8.0+).
-     - *Tier 3:* Auto-Wake and Launch jika pemutar belum dibuka.
-     - *Tier 4:* Global `AudioManager` Media Key Event & Ordered Broadcast.
+     - _Tier 1:_ Direct `MediaSessionManager` & `MediaController` TransportControls (kontrol resmi Android modern untuk Spotify, YouTube Music, VLC, dll.).
+     - _Tier 2:_ Explicit Component Targeting untuk pemutar background/dormant (lolos restriksi Android 8.0+).
+     - _Tier 3:_ Auto-Wake and Launch jika pemutar belum dibuka.
+     - _Tier 4:_ Global `AudioManager` Media Key Event & Ordered Broadcast.
    - **Tombol navigasi stang motor Honda** dan **tombol fisik intercom helm** (Play, Pause, Next, Prev) langsung diteruskan secara otomatis ke aplikasi pemutar yang sedang Anda pilih!
-   - **Tampilan Info Lagu & Kontrol Langsung di Dashboard & Layar HUD**: Menampilkan judul lagu yang sedang berputar di aplikasi pihak ketiga secara *live* beserta tombol kontrol cepat (⏮ Prev, ⏯ Play/Pause, Next ⏭).
+   - **Tampilan Info Lagu & Kontrol Langsung di Dashboard & Layar HUD**: Menampilkan judul lagu yang sedang berputar di aplikasi pihak ketiga secara _live_ beserta tombol kontrol cepat (⏮ Prev, ⏯ Play/Pause, Next ⏭).
 
 2. **Deteksi & Pembaca Panggilan WhatsApp Otomatis (`NotificationAnnouncerService`)**
-   - Mendeteksi panggilan suara/video WhatsApp masuk secara *real-time*.
-   - Menerapkan *Audio Ducking* (volume musik otomatis mengecil saat panggilan masuk).
-   - Membacakan nama kontak penelepon langsung ke *intercom* helm Bluetooth Anda: *"Telepon WhatsApp masuk dari [Nama Kontak]"*.
+   - Mendeteksi panggilan suara/video WhatsApp masuk secara _real-time_.
+   - Menerapkan _Audio Ducking_ (volume musik otomatis mengecil saat panggilan masuk).
+   - Membacakan nama kontak penelepon langsung ke _intercom_ helm Bluetooth Anda: _"Telepon WhatsApp masuk dari [Nama Kontak]"_.
 
 3. **Mesin TTS Bahasa Indonesia Alami (`SlangNormalizer` + `TtsManager`)**
    - Mengunci bahasa ke Bahasa Indonesia murni.
-   - Dilengkapi pembersih teks otomatis: menghilangkan emoji, tautan, dan menerjemahkan singkatan chat (*otw*, *dmn*, *bwt*, *yg*, *kbrin*, dll.) agar intonasi terdengar natural saat berkendara.
+   - Dilengkapi pembersih teks otomatis: menghilangkan emoji, tautan, dan menerjemahkan singkatan chat (_otw_, _dmn_, _bwt_, _yg_, _kbrin_, dll.) agar intonasi terdengar natural saat berkendara.
 
 4. **Speedometer & Kompas GPS Stabil Anti-Pusing (`GpsStabilizer` + `HudActivity`)**
    - **Tampilan HUD Stang**: Layar mode malam (OLED Dark Mode) kontras tinggi dengan angka kecepatan ekstra besar.
    - **Tombol Kontrol Media Terintegrasi**: Pengendara dapat mengganti lagu atau jeda langsung dari layar HUD.
    - **Algoritma Filter Arah**:
      - Saat kecepatan `< 3.5 km/jam` (berhenti di lampu merah): Arah kompas otomatis dikunci (tidak berputar-putar akibat gangguan medan magnet kelistrikan motor).
-     - Saat bergerak: Arah dikunci ke pergerakan vektor GPS dengan penghalusan *Circular Exponential Moving Average*.
+     - Saat bergerak: Arah dikunci ke pergerakan vektor GPS dengan penghalusan _Circular Exponential Moving Average_.
+
+5. **Pengaturan Bahasa & Tampilan Dinamis (`LocaleThemeManager`)**
+   - **Dukungan Dua Bahasa**: Pilihan instan antara **Bahasa Indonesia** dan **English**, atau otomatis mengikuti bahasa sistem HP. Seluruh antarmuka, dialog, panduan, dan suara pengumuman TTS otomatis berganti bahasa.
+   - **Pilihan Mode Tampilan Fleksibel**:
+     - **Otomatis (Ikuti Sistem / Device)**: Menyesuaikan secara otomatis dengan tema perangkat Anda.
+     - **Mode Gelap (Dark Mode)**: Tampilan OLED kontras tinggi yang ramah mata dan hemat daya.
+     - **Mode Terang (Light Mode)**: Tampilan bersih dengan visibilitas optimal di bawah terik sinar matahari siang hari.
 
 ---
 
@@ -113,7 +120,7 @@ Agar tombol stang motor Honda PCX Anda dapat mengontrol pemutar musik (Spotify, 
 1. Buka **MotoCompanion** di HP Anda.
 2. Pada bagian paling atas **"PILIHAN PEMUTAR MEDIA (MUSIK & VIDEO)"**, tekan tombol **"Ubah"**.
 3. Aplikasi akan menampilkan seluruh pemutar musik dan video yang terpasang di HP Anda (misal: VLC, Poweramp, MX Player, Spotify, YouTube Music, pemutar buatan sendiri, dll.).
-   - *Tips:* Jika pemutar buatan sendiri tidak langsung muncul, aktifkan tombol saklar *"Tampilkan seluruh aplikasi terinstal"*.
+   - _Tips:_ Jika pemutar buatan sendiri tidak langsung muncul, aktifkan tombol saklar _"Tampilkan seluruh aplikasi terinstal"_.
 4. Pilih aplikasi pemutar yang Anda inginkan.
 5. Tekan tombol **"Uji Play / Pause"** untuk memverifikasi.
-6. Sekarang, saat Anda menekan tombol di stang motor atau tombol di *intercom* helm, musik/video di aplikasi terpilih tersebut yang akan langsung merespons (Play, Pause, Next, Prev)!
+6. Sekarang, saat Anda menekan tombol di stang motor atau tombol di _intercom_ helm, musik/video di aplikasi terpilih tersebut yang akan langsung merespons (Play, Pause, Next, Prev)!

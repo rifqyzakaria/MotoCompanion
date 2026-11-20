@@ -10,11 +10,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
-import android.os.Handler
-import android.os.Looper
 import android.view.KeyEvent
 import android.widget.EditText
 import android.widget.Toast
@@ -23,11 +23,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.motocompanion.App
 import com.motocompanion.BuildConfig
+import com.motocompanion.R
 import com.motocompanion.databinding.ActivityMainBinding
 import com.motocompanion.service.GpsTrackingService
-import com.motocompanion.service.MediaSessionService
 import com.motocompanion.service.NotificationAnnouncerService
 import com.motocompanion.update.AppUpdateManager
+import com.motocompanion.util.LocaleThemeManager
 import com.motocompanion.util.MediaControlDispatcher
 import com.motocompanion.util.RoadSyncBridge
 
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         setupListeners()
         loadPreferences()
+        updateThemeAndLanguageUi()
 
         // Periksa pembaruan di latar belakang saat aplikasi dibuka
         AppUpdateManager.checkForUpdates(this, showUpToDateToast = false)
@@ -82,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         updateActivePlayerName()
         updateRoadSyncUi()
         updateGithubRepoUi()
+        updateThemeAndLanguageUi()
         trackUpdateHandler.post(trackUpdateRunnable)
 
         val filter = IntentFilter(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED)
@@ -101,21 +104,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // Integrasi Pendamping Honda RoadSync (PCX)
+        // Integrasi Pendamping Honda RoadSync
         binding.btnLaunchRoadSync.setOnClickListener {
             val launched = RoadSyncBridge.launchRoadSync(this)
             if (!launched) {
                 AlertDialog.Builder(this)
-                    .setTitle("Honda RoadSync Belum Terpasang")
-                    .setMessage("Aplikasi resmi Honda RoadSync tidak ditemukan di HP ini. Unduh dari Google Play Store?")
-                    .setPositiveButton("Buka Play Store") { _, _ ->
+                    .setTitle(R.string.roadsync_not_installed_title)
+                    .setMessage(R.string.roadsync_not_installed_message)
+                    .setPositiveButton(R.string.btn_open_playstore) { _, _ ->
                         try {
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${RoadSyncBridge.PKG_HONDA_ROADSYNC}")))
                         } catch (_: Exception) {
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=${RoadSyncBridge.PKG_HONDA_ROADSYNC}")))
                         }
                     }
-                    .setNegativeButton("Batal", null)
+                    .setNegativeButton(R.string.btn_cancel, null)
                     .show()
             }
         }
@@ -132,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             RoadSyncBridge.setAutoStartEnabled(this, isChecked)
             Toast.makeText(
                 this,
-                if (isChecked) "Auto-start aktif saat Bluetooth PCX terhubung" else "Auto-start dinonaktifkan",
+                if (isChecked) getString(R.string.toast_auto_start_on) else getString(R.string.toast_auto_start_off),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -141,21 +144,21 @@ class MainActivity : AppCompatActivity() {
         binding.btnMainPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
             val name = MediaControlDispatcher.getSelectedName(this)
-            Toast.makeText(this, "⏮ Lagu Sebelumnya dikirim ke $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_cmd_sent_prev, name), Toast.LENGTH_SHORT).show()
             trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
         }
 
         binding.btnMainPlayPause.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             val name = MediaControlDispatcher.getSelectedName(this)
-            Toast.makeText(this, "⏯ Play/Pause dikirim ke $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_cmd_sent_play_pause, name), Toast.LENGTH_SHORT).show()
             trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
         }
 
         binding.btnMainNext.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
             val name = MediaControlDispatcher.getSelectedName(this)
-            Toast.makeText(this, "Next ⏭ dikirim ke $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_cmd_sent_next, name), Toast.LENGTH_SHORT).show()
             trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
         }
 
@@ -172,9 +175,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, MusicActivity::class.java))
         }
 
+        // Pengaturan Tampilan & Bahasa
+        binding.btnSelectLanguage.setOnClickListener {
+            showLanguageDialog()
+        }
+
+        binding.btnSelectTheme.setOnClickListener {
+            showThemeDialog()
+        }
+
         // Pembaruan Aplikasi GitHub
         binding.btnCheckUpdate.setOnClickListener {
-            Toast.makeText(this, "Memeriksa rilis terbaru di GitHub...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_checking_update), Toast.LENGTH_SHORT).show()
             AppUpdateManager.checkForUpdates(this, showUpToDateToast = true)
         }
 
@@ -224,19 +236,15 @@ class MainActivity : AppCompatActivity() {
 
         // Tes Audio & Simulasi
         binding.btnTestVoice.setOnClickListener {
-            App.instance.ttsManager.speak(
-                "Tes audio intercom berhasil. Sistem Moto Companion siap mendampingi perjalanan Anda.",
-                isPriority = true
-            )
-            Toast.makeText(this, "Mengirim suara tes ke intercom/headset...", Toast.LENGTH_SHORT).show()
+            val voiceText = getString(R.string.tts_test_intercom)
+            App.instance.ttsManager.speak(voiceText, isPriority = true)
+            Toast.makeText(this, getString(R.string.toast_testing_voice), Toast.LENGTH_SHORT).show()
         }
 
         binding.btnTestCall.setOnClickListener {
-            App.instance.ttsManager.speak(
-                "Telepon WhatsApp masuk dari Budi Santoso",
-                isPriority = true
-            )
-            Toast.makeText(this, "Mensimulasikan panggilan WhatsApp masuk...", Toast.LENGTH_SHORT).show()
+            val callText = getString(R.string.tts_test_call, "Budi Santoso")
+            App.instance.ttsManager.speak(callText, isPriority = true)
+            Toast.makeText(this, getString(R.string.toast_testing_call), Toast.LENGTH_SHORT).show()
         }
 
         // Buka Layar Kendara
@@ -250,6 +258,78 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateThemeAndLanguageUi() {
+        val currentTheme = LocaleThemeManager.getTheme(this)
+        binding.tvCurrentTheme.text = LocaleThemeManager.getThemeDisplayName(this, currentTheme)
+
+        val currentLang = LocaleThemeManager.getLanguage(this)
+        binding.tvCurrentLanguage.text = LocaleThemeManager.getLanguageDisplayName(this, currentLang)
+    }
+
+    private fun showLanguageDialog() {
+        val languages = arrayOf(
+            getString(R.string.lang_indonesian),
+            getString(R.string.lang_english),
+            getString(R.string.lang_system)
+        )
+        val codes = arrayOf(
+            LocaleThemeManager.LANG_IN,
+            LocaleThemeManager.LANG_EN,
+            LocaleThemeManager.LANG_SYSTEM
+        )
+        val currentCode = LocaleThemeManager.getLanguage(this)
+        val currentIndex = when (currentCode) {
+            LocaleThemeManager.LANG_IN -> 0
+            LocaleThemeManager.LANG_EN -> 1
+            else -> 2
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_select_language)
+            .setSingleChoiceItems(languages, currentIndex) { dialog, which ->
+                val selectedCode = codes[which]
+                dialog.dismiss()
+                if (selectedCode != currentCode) {
+                    LocaleThemeManager.setLanguage(this, selectedCode)
+                    updateThemeAndLanguageUi()
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
+    private fun showThemeDialog() {
+        val themes = arrayOf(
+            getString(R.string.theme_system),
+            getString(R.string.theme_dark),
+            getString(R.string.theme_light)
+        )
+        val codes = arrayOf(
+            LocaleThemeManager.THEME_SYSTEM,
+            LocaleThemeManager.THEME_DARK,
+            LocaleThemeManager.THEME_LIGHT
+        )
+        val currentCode = LocaleThemeManager.getTheme(this)
+        val currentIndex = when (currentCode) {
+            LocaleThemeManager.THEME_DARK -> 1
+            LocaleThemeManager.THEME_LIGHT -> 2
+            else -> 0
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_select_theme)
+            .setSingleChoiceItems(themes, currentIndex) { dialog, which ->
+                val selectedCode = codes[which]
+                dialog.dismiss()
+                if (selectedCode != currentCode) {
+                    LocaleThemeManager.setTheme(this, selectedCode)
+                    updateThemeAndLanguageUi()
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
     private fun showSetRepoDialog() {
         val currentRepo = AppUpdateManager.getSavedRepo(this)
         val input = EditText(this).apply {
@@ -258,43 +338,35 @@ class MainActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Atur Repositori GitHub")
-            .setMessage("Masukkan format 'username/nama-repo' tempat Anda merilis file APK pembaruan:")
+            .setTitle(R.string.dialog_set_repo_title)
+            .setMessage(R.string.dialog_set_repo_message)
             .setView(input)
-            .setPositiveButton("Simpan") { _, _ ->
+            .setPositiveButton(R.string.btn_save) { _, _ ->
                 val newRepo = input.text.toString().trim()
                 if (newRepo.isNotBlank()) {
                     AppUpdateManager.setSavedRepo(this, newRepo)
                     updateGithubRepoUi()
-                    Toast.makeText(this, "Repositori disimpan: $newRepo", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.toast_repo_saved, newRepo), Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton(R.string.btn_cancel, null)
             .show()
     }
 
     private fun updateGithubRepoUi() {
         val version = BuildConfig.VERSION_NAME
-        binding.tvCurrentVersion.text = "Versi Saat Ini: v$version"
+        binding.tvCurrentVersion.text = getString(R.string.current_version_format, version)
         binding.tvGithubRepo.text = "Repo: ${AppUpdateManager.getSavedRepo(this)}"
     }
 
     private fun showRoadSyncGuideDialog() {
         AlertDialog.Builder(this)
-            .setTitle("🏍️ Hubungkan ke Honda RoadSync (Semua Motor)")
-            .setMessage(
-                "Langkah menghubungkan agar tombol stang motor Honda Anda mengontrol musik:\n\n" +
-                "1. Pastikan Bluetooth ponsel terhubung ke motor Honda Anda (PCX, ADV, Forza, Hornet, Transalp, CB, dll.) & Helm Intercom.\n\n" +
-                "2. Buka aplikasi resmi Honda RoadSync.\n\n" +
-                "3. Buka Pengaturan (Settings) ➔ Sumber Musik (Music Source).\n\n" +
-                "4. Pilih 'Spotify' (H-Sync) sebagai sumber musik!\n\n" +
-                "5. Di H-Sync, pilih pemutar musik yang Anda inginkan (BitChord, YouTube Music, dll.).\n\n" +
-                "6. Selesai! Saat berkendara, tombol stang motor Honda akan langsung mengontrol lagu dan judul lagu tampil di layar TFT speedometer!"
-            )
-            .setPositiveButton("Buka RoadSync Sekarang") { _, _ ->
+            .setTitle(R.string.guide_title)
+            .setMessage(R.string.guide_message)
+            .setPositiveButton(R.string.guide_btn_open) { _, _ ->
                 RoadSyncBridge.launchRoadSync(this)
             }
-            .setNegativeButton("Tutup", null)
+            .setNegativeButton(R.string.guide_btn_close, null)
             .show()
     }
 
@@ -302,10 +374,10 @@ class MainActivity : AppCompatActivity() {
         val currentlyActive = RoadSyncBridge.isCompanionActive(this)
         if (!currentlyActive) {
             RoadSyncBridge.startAllServices(this, "Manual Toggle")
-            Toast.makeText(this, "🏍️ H-Sync Aktif Mendampingi Motor Honda!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_companion_active), Toast.LENGTH_SHORT).show()
         } else {
             RoadSyncBridge.stopAllServices(this, "Manual Toggle")
-            Toast.makeText(this, "H-Sync Dinonaktifkan", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_companion_stopped), Toast.LENGTH_SHORT).show()
         }
         updateRoadSyncUi()
     }
@@ -316,38 +388,38 @@ class MainActivity : AppCompatActivity() {
         val connectedDevice = RoadSyncBridge.getConnectedDeviceName(this)
 
         if (isCompanionActive) {
-            binding.tvRoadSyncStatus.text = "Honda RoadSync: Aktif 🟢"
-            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            binding.btnToggleCompanion.text = "Matikan"
-            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_red))
-            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_red)
-            binding.tvHeaderStatusBadge.text = "🟢 AKTIF"
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            binding.tvHeaderStatusBadge.setBackgroundResource(com.motocompanion.R.drawable.bg_pill_active)
+            binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_active)
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.btnToggleCompanion.text = getString(R.string.btn_turn_off)
+            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, R.color.accent_red))
+            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_red)
+            binding.tvHeaderStatusBadge.text = getString(R.string.status_active)
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill_active)
         } else if (isInstalled) {
-            binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi ⚪"
-            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_primary))
-            binding.btnToggleCompanion.text = "Aktifkan"
-            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_green)
-            binding.tvHeaderStatusBadge.text = "⚪ STANDBY"
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
-            binding.tvHeaderStatusBadge.setBackgroundResource(com.motocompanion.R.drawable.bg_pill)
+            binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_ready)
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+            binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
+            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_green)
+            binding.tvHeaderStatusBadge.text = getString(R.string.status_standby)
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill)
         } else {
-            binding.tvRoadSyncStatus.text = "Honda RoadSync: Belum Terpasang"
-            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
-            binding.btnToggleCompanion.text = "Aktifkan"
-            binding.tvHeaderStatusBadge.text = "⚪ OFFLINE"
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_muted))
-            binding.tvHeaderStatusBadge.setBackgroundResource(com.motocompanion.R.drawable.bg_pill)
+            binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_not_installed)
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
+            binding.tvHeaderStatusBadge.text = getString(R.string.status_offline)
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
+            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill)
         }
 
         if (connectedDevice != null) {
-            binding.tvBluetoothDeviceName.text = "Bluetooth Motor/Helm: Terhubung ($connectedDevice)"
-            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
+            binding.tvBluetoothDeviceName.text = getString(R.string.bt_connected, connectedDevice)
+            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
         } else {
-            binding.tvBluetoothDeviceName.text = "Bluetooth Motor: Menunggu Kontak Motor Menyala..."
-            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_amber))
+            binding.tvBluetoothDeviceName.text = getString(R.string.bt_waiting)
+            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
         }
 
         binding.switchAutoStartCompanion.isChecked = RoadSyncBridge.isAutoStartEnabled(this)
@@ -364,13 +436,13 @@ class MainActivity : AppCompatActivity() {
         if (track != null && track.title.isNotBlank()) {
             binding.tvActiveTrackInfo.text = "🎵 ${track.title} • ${track.artist}"
             if (track.isPlaying) {
-                binding.tvActiveTrackState.text = "Memutar"
-                binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-                binding.btnMainPlayPause.text = "⏸ Jeda"
+                binding.tvActiveTrackState.text = getString(R.string.state_playing)
+                binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+                binding.btnMainPlayPause.text = getString(R.string.btn_pause)
             } else {
-                binding.tvActiveTrackState.text = "Jeda / Siap"
-                binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
-                binding.btnMainPlayPause.text = "▶ Putar"
+                binding.tvActiveTrackState.text = getString(R.string.state_paused)
+                binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+                binding.btnMainPlayPause.text = getString(R.string.btn_play)
             }
         }
     }
@@ -385,14 +457,14 @@ class MainActivity : AppCompatActivity() {
         // 1. Cek Notification Listener
         val isNotificationGranted = isNotificationServiceEnabled()
         if (isNotificationGranted) {
-            binding.tvNotificationStatus.text = "Aktif (Mendeteksi WhatsApp)"
-            binding.tvNotificationStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            binding.btnGrantNotification.text = "Sudah Aktif"
+            binding.tvNotificationStatus.text = getString(R.string.status_granted_notification)
+            binding.tvNotificationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.btnGrantNotification.text = getString(R.string.btn_granted)
             binding.btnGrantNotification.isEnabled = false
         } else {
-            binding.tvNotificationStatus.text = "Perlu diaktifkan agar bisa membaca WA"
-            binding.tvNotificationStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_amber))
-            binding.btnGrantNotification.text = "Aktifkan"
+            binding.tvNotificationStatus.text = getString(R.string.status_grant_notification_hint)
+            binding.tvNotificationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.btnGrantNotification.text = getString(R.string.btn_configure)
             binding.btnGrantNotification.isEnabled = true
         }
 
@@ -403,28 +475,28 @@ class MainActivity : AppCompatActivity() {
         } else true
 
         if (isBatteryIgnoring) {
-            binding.tvBatteryStatus.text = "Tidak Dibatasi (Latar belakang aman)"
-            binding.tvBatteryStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            binding.btnGrantBattery.text = "Sudah Aktif"
+            binding.tvBatteryStatus.text = getString(R.string.status_granted_battery)
+            binding.tvBatteryStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.btnGrantBattery.text = getString(R.string.btn_granted)
             binding.btnGrantBattery.isEnabled = false
         } else {
-            binding.tvBatteryStatus.text = "Pilih 'Tidak Dibatasi' agar GPS tidak tertidur"
-            binding.tvBatteryStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_amber))
-            binding.btnGrantBattery.text = "Aktifkan"
+            binding.tvBatteryStatus.text = getString(R.string.status_grant_battery_hint)
+            binding.tvBatteryStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.btnGrantBattery.text = getString(R.string.btn_configure)
             binding.btnGrantBattery.isEnabled = true
         }
 
         // 3. Cek Location
         if (hasLocationPermission()) {
-            binding.tvLocationStatus.text = "Izin GPS Aktif"
-            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
-            binding.btnGrantLocation.text = "Sudah Aktif"
+            binding.tvLocationStatus.text = getString(R.string.status_granted_location)
+            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.btnGrantLocation.text = getString(R.string.btn_granted)
             binding.btnGrantLocation.isEnabled = false
             startGpsService()
         } else {
-            binding.tvLocationStatus.text = "Perlu izin GPS untuk speedometer & arah"
-            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_amber))
-            binding.btnGrantLocation.text = "Izinkan"
+            binding.tvLocationStatus.text = getString(R.string.status_grant_location_hint)
+            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.btnGrantLocation.text = getString(R.string.btn_configure)
             binding.btnGrantLocation.isEnabled = true
         }
     }

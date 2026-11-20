@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Identity -->
+    <string name="app_name">H-Sync</string>
+    <string name="service_announcer_name">WA Call &amp; Message Announcer for Motorcycle</string>
+    <string name="title_dashboard">H-SYNC</string>
+    <string name="subtitle_dashboard">Smart Companion for Honda RoadSync</string>
+
+    <!-- Status Badges -->
+    <string name="status_active">🟢 ACTIVE</string>
+    <string name="status_standby">⚪ STANDBY</string>
+    <string name="status_offline">⚪ OFFLINE</string>
+
+    <!-- Connection Section -->
+    <string name="section_connection">HONDA ROADSYNC MOTORCYCLE CONNECTION</string>
+    <string name="roadsync_status_active">Honda RoadSync: Active 🟢</string>
+    <string name="roadsync_status_ready">Honda RoadSync: Ready to Connect ⚪</string>
+    <string name="roadsync_status_not_installed">Honda RoadSync: Not Installed</string>
+    <string name="bt_connected">Motorcycle/Helmet Bluetooth: Connected (%1$s)</string>
+    <string name="bt_waiting">Motorcycle Bluetooth: Waiting for Ignition ON...</string>
+    <string name="btn_turn_on">Activate</string>
+    <string name="btn_turn_off">Deactivate</string>
+    <string name="btn_launch_roadsync">Open RoadSync</string>
+    <string name="btn_bike_guide">Bike Guide</string>
+    <string name="switch_auto_start">Auto start &amp; stop with motorcycle ignition</string>
+    <string name="toast_auto_start_on">Auto-start enabled when motorcycle Bluetooth connects</string>
+    <string name="toast_auto_start_off">Auto-start disabled</string>
+    <string name="toast_companion_active">🏍️ H-Sync Active for Honda Motorcycles!</string>
+    <string name="toast_companion_stopped">H-Sync Deactivated</string>
+
+    <!-- Music Control Section -->
+    <string name="section_media_control">MUSIC PLAYER CONTROL (TFT &amp; HANDLEBAR)</string>
+    <string name="label_selected_player">Selected Player</string>
+    <string name="btn_change">Change</string>
+    <string name="no_music_playing">🎵 No track playing</string>
+    <string name="state_playing">Playing</string>
+    <string name="state_paused">Paused / Ready</string>
+    <string name="btn_prev">⏮ Prev</string>
+    <string name="btn_play">▶ Play</string>
+    <string name="btn_pause">⏸ Pause</string>
+    <string name="btn_next">Next ⏭</string>
+    <string name="btn_launch_player">Open This Player</string>
+    <string name="btn_offline_music">Offline Music</string>
+    <string name="toast_cmd_sent_prev">⏮ Previous Track sent to %1$s</string>
+    <string name="toast_cmd_sent_play_pause">⏯ Play/Pause sent to %1$s</string>
+    <string name="toast_cmd_sent_next">Next ⏭ sent to %1$s</string>
+
+    <!-- Announcer Section -->
+    <string name="section_announcer">VOICE ANNOUNCER &amp; INTERCOM</string>
+    <string name="toggle_whatsapp_calls">Announce WhatsApp Voice Calls</string>
+    <string name="toggle_whatsapp_calls_sub">Speak caller name while riding</string>
+    <string name="toggle_whatsapp_messages">Read Incoming WhatsApp Messages</string>
+    <string name="toggle_whatsapp_messages_sub">Read incoming WA chat messages into helmet intercom</string>
+    <string name="toggle_gps_stabilizer">Lock GPS Bearing (Anti-Spin Map)</string>
+    <string name="toggle_gps_stabilizer_sub">Stabilize compass bearing so maps do not spin</string>
+    <string name="btn_test_intercom">Test Intercom</string>
+    <string name="btn_test_call">Test WA Call</string>
+    <string name="toast_testing_voice">Sending test audio to intercom/headset...</string>
+    <string name="toast_testing_call">Simulating incoming WhatsApp call...</string>
+    <string name="tts_test_intercom">Intercom audio test successful. H-Sync system is ready for your ride.</string>
+    <string name="tts_test_call">Incoming WhatsApp call from %1$s</string>
+    <string name="tts_incoming_call">Incoming WhatsApp call from %1$s</string>
+    <string name="tts_incoming_message">Message from %1$s: %2$s</string>
+    <string name="unknown_caller">Unknown Number</string>
+
+    <!-- Display & Language Section -->
+    <string name="section_display_and_language">DISPLAY &amp; LANGUAGE</string>
+    <string name="setting_language_title">App Language</string>
+    <string name="setting_theme_title">Theme</string>
+    <string name="dialog_select_language">Select App Language</string>
+    <string name="dialog_select_theme">Select App Theme</string>
+    <string name="lang_system">⚙️ System Default</string>
+    <string name="lang_indonesian">🇮🇩 Bahasa Indonesia</string>
+    <string name="lang_english">🇬🇧 English</string>
+    <string name="theme_system">⚙️ Automatic (Follow System / Device)</string>
+    <string name="theme_dark">🌙 Dark Mode</string>
+    <string name="theme_light">☀️ Light Mode</string>
+
+    <!-- Permissions & Update Section -->
+    <string name="section_permissions">SYSTEM PERMISSIONS &amp; UPDATE</string>
+    <string name="status_notification_access">Notification Access</string>
+    <string name="status_battery_optimization">Battery Optimization</string>
+    <string name="status_location">GPS Location Permission</string>
+    <string name="status_granted_notification">Active (Detecting WhatsApp)</string>
+    <string name="status_grant_notification_hint">Required to read incoming WA calls/messages</string>
+    <string name="status_granted_battery">Unrestricted (Background safe)</string>
+    <string name="status_grant_battery_hint">Select \'Unrestricted\' so GPS stays active</string>
+    <string name="status_granted_location">GPS Permission Active</string>
+    <string name="status_grant_location_hint">GPS permission needed for speedometer &amp; bearing</string>
+    <string name="btn_grant">Enable</string>
+    <string name="btn_granted">Active</string>
+    <string name="btn_configure">Setup</string>
+    <string name="current_version_format">Current Version: v%1$s</string>
+    <string name="btn_check_update">Check GitHub Updates</string>
+    <string name="toast_checking_update">Checking latest release on GitHub...</string>
+    <string name="dialog_set_repo_title">Set GitHub Repository</string>
+    <string name="dialog_set_repo_message">Enter \'username/repo-name\' where update APK files are published:</string>
+    <string name="toast_repo_saved">Repository saved: %1$s</string>
+
+    <!-- Dialogs & Bike Guide -->
+    <string name="guide_title">🏍️ Connect to Honda RoadSync (All Bikes)</string>
+    <string name="guide_message">Steps to connect motorcycle handlebar buttons to your music:\n\n1. Ensure your phone Bluetooth is connected to your Honda motorcycle (PCX, ADV, Forza, Hornet, Transalp, CB, etc.) &amp; Helmet Intercom.\n\n2. Open the official Honda RoadSync app.\n\n3. Go to Settings ➔ Music Source.\n\n4. Select \'Spotify\' (H-Sync) as the music source!\n\n5. In H-Sync, choose your desired music player (BitChord, YouTube Music, etc.).\n\n6. Done! While riding, your Honda handlebar buttons will directly control tracks and song titles will appear on your TFT display!</string>
+    <string name="guide_btn_open">Open RoadSync Now</string>
+    <string name="guide_btn_close">Close</string>
+    <string name="roadsync_not_installed_title">Honda RoadSync Not Installed</string>
+    <string name="roadsync_not_installed_message">The official Honda RoadSync app was not found on this device. Download from Google Play Store?</string>
+    <string name="btn_open_playstore">Open Play Store</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_save">Save</string>
+
+    <!-- Handlebar HUD Activity -->
+    <string name="btn_open_hud">Open Moto HUD (Handlebar Mode)</string>
+    <string name="btn_open_music">Music Player</string>
+    <string name="hud_exit">Exit</string>
+    <string name="hud_player_format">🎵 Player: %1$s</string>
+    <string name="hud_gps_accuracy_format">GPS: Accuracy ±%.0fm</string>
+    <string name="hud_altitude_format">Altitude: %1$d m</string>
+    <string name="hud_speed_unit">KM / H</string>
+    <string name="hud_bearing_locked">%03d° (GPS Lock Active)</string>
+
+    <!-- Player Selector Activity -->
+    <string name="selector_title">Select Media Player</string>
+    <string name="selector_subtitle">Audio &amp; video players (Play Store / Sideloaded)</string>
+    <string name="selector_switch_all">Show all installed applications</string>
+    <string name="selector_selected_format">Selected: %1$s</string>
+    <string name="selector_btn_launch">Open App</string>
+    <string name="selector_toast_active">Active player: %1$s</string>
+
+    <!-- Built-in Music Activity -->
+    <string name="music_title">Built-in Music Player</string>
+    <string name="music_reload">Reload</string>
+    <string name="music_select_track">Select a track to start</string>
+    <string name="music_handlebar_hint">Can be controlled via motorcycle handlebar buttons</string>
+</resources>

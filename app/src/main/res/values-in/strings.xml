@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Identity -->
+    <string name="app_name">H-Sync</string>
+    <string name="service_announcer_name">Pengumum Panggilan WA &amp; Pesan Motor</string>
+    <string name="title_dashboard">H-SYNC</string>
+    <string name="subtitle_dashboard">Pendamping Cerdas Honda RoadSync</string>
+
+    <!-- Status Badges -->
+    <string name="status_active">🟢 AKTIF</string>
+    <string name="status_standby">⚪ STANDBY</string>
+    <string name="status_offline">⚪ OFFLINE</string>
+
+    <!-- Connection Section -->
+    <string name="section_connection">KONEKSI MOTOR HONDA ROADSYNC</string>
+    <string name="roadsync_status_active">Honda RoadSync: Aktif 🟢</string>
+    <string name="roadsync_status_ready">Honda RoadSync: Siap Dampingi ⚪</string>
+    <string name="roadsync_status_not_installed">Honda RoadSync: Belum Terpasang</string>
+    <string name="bt_connected">Bluetooth Motor/Helm: Terhubung (%1$s)</string>
+    <string name="bt_waiting">Bluetooth Motor: Menunggu Kontak Motor Menyala...</string>
+    <string name="btn_turn_on">Aktifkan</string>
+    <string name="btn_turn_off">Matikan</string>
+    <string name="btn_launch_roadsync">Buka RoadSync</string>
+    <string name="btn_bike_guide">Panduan Motor</string>
+    <string name="switch_auto_start">Otomatis nyala &amp; mati mengikuti kontak motor</string>
+    <string name="toast_auto_start_on">Auto-start aktif saat Bluetooth motor terhubung</string>
+    <string name="toast_auto_start_off">Auto-start dinonaktifkan</string>
+    <string name="toast_companion_active">🏍️ H-Sync Aktif Mendampingi Motor Honda!</string>
+    <string name="toast_companion_stopped">H-Sync Dinonaktifkan</string>
+
+    <!-- Music Control Section -->
+    <string name="section_media_control">KONTROL PEMUTAR MUSIK (TFT &amp; STANG)</string>
+    <string name="label_selected_player">Pemutar Terpilih</string>
+    <string name="btn_change">Ganti</string>
+    <string name="no_music_playing">🎵 Belum ada lagu yang diputar</string>
+    <string name="state_playing">Memutar</string>
+    <string name="state_paused">Jeda / Siap</string>
+    <string name="btn_prev">⏮ Prev</string>
+    <string name="btn_play">▶ Putar</string>
+    <string name="btn_pause">⏸ Jeda</string>
+    <string name="btn_next">Next ⏭</string>
+    <string name="btn_launch_player">Buka Pemutar Ini</string>
+    <string name="btn_offline_music">Lagu Offline</string>
+    <string name="toast_cmd_sent_prev">⏮ Lagu Sebelumnya dikirim ke %1$s</string>
+    <string name="toast_cmd_sent_play_pause">⏯ Play/Pause dikirim ke %1$s</string>
+    <string name="toast_cmd_sent_next">Next ⏭ dikirim ke %1$s</string>
+
+    <!-- Announcer Section -->
+    <string name="section_announcer">PENGUMUM SUARA &amp; INTERCOM</string>
+    <string name="toggle_whatsapp_calls">Umumkan Panggilan Suara WhatsApp</string>
+    <string name="toggle_whatsapp_calls_sub">Sebut nama pemanggil saat motor berjalan</string>
+    <string name="toggle_whatsapp_messages">Bacakan Pesan WhatsApp Masuk</string>
+    <string name="toggle_whatsapp_messages_sub">Bacakan isi chat pesan WA ke helm intercom</string>
+    <string name="toggle_gps_stabilizer">Kunci Arah GPS (Anti-Peta Berputar)</string>
+    <string name="toggle_gps_stabilizer_sub">Kunci arah kompas agar peta tidak berputar</string>
+    <string name="btn_test_intercom">Tes Intercom</string>
+    <string name="btn_test_call">Tes Panggilan WA</string>
+    <string name="toast_testing_voice">Mengirim suara tes ke intercom/headset...</string>
+    <string name="toast_testing_call">Mensimulasikan panggilan WhatsApp masuk...</string>
+    <string name="tts_test_intercom">Tes audio intercom berhasil. Sistem H-Sync siap mendampingi perjalanan Anda.</string>
+    <string name="tts_test_call">Telepon WhatsApp masuk dari %1$s</string>
+    <string name="tts_incoming_call">Telepon WhatsApp masuk dari %1$s</string>
+    <string name="tts_incoming_message">Pesan dari %1$s: %2$s</string>
+    <string name="unknown_caller">Nomor Tidak Dikenal</string>
+
+    <!-- Display & Language Section -->
+    <string name="section_display_and_language">TAMPILAN &amp; BAHASA</string>
+    <string name="setting_language_title">Bahasa Aplikasi</string>
+    <string name="setting_theme_title">Mode Tampilan</string>
+    <string name="dialog_select_language">Pilih Bahasa Aplikasi</string>
+    <string name="dialog_select_theme">Pilih Mode Tampilan</string>
+    <string name="lang_system">⚙️ Otomatis (Ikuti Sistem HP)</string>
+    <string name="lang_indonesian">🇮🇩 Bahasa Indonesia</string>
+    <string name="lang_english">🇬🇧 English</string>
+    <string name="theme_system">⚙️ Otomatis (Ikuti Sistem / Device)</string>
+    <string name="theme_dark">🌙 Mode Gelap (Dark Mode)</string>
+    <string name="theme_light">☀️ Mode Terang (Light Mode)</string>
+
+    <!-- Permissions & Update Section -->
+    <string name="section_permissions">STATUS IZIN SISTEM &amp; PEMBARUAN</string>
+    <string name="status_notification_access">Akses Notifikasi</string>
+    <string name="status_battery_optimization">Optimasi Baterai</string>
+    <string name="status_location">Izin Lokasi GPS</string>
+    <string name="status_granted_notification">Aktif (Mendeteksi WhatsApp)</string>
+    <string name="status_grant_notification_hint">Perlu diaktifkan agar bisa membaca WA</string>
+    <string name="status_granted_battery">Tidak Dibatasi (Latar belakang aman)</string>
+    <string name="status_grant_battery_hint">Pilih \'Tidak Dibatasi\' agar GPS tidak tertidur</string>
+    <string name="status_granted_location">Izin GPS Aktif</string>
+    <string name="status_grant_location_hint">Perlu izin GPS untuk speedometer &amp; arah</string>
+    <string name="btn_grant">Aktifkan</string>
+    <string name="btn_granted">Sudah Aktif</string>
+    <string name="btn_configure">Atur</string>
+    <string name="current_version_format">Versi Saat Ini: v%1$s</string>
+    <string name="btn_check_update">Periksa Pembaruan GitHub</string>
+    <string name="toast_checking_update">Memeriksa rilis terbaru di GitHub...</string>
+    <string name="dialog_set_repo_title">Atur Repositori GitHub</string>
+    <string name="dialog_set_repo_message">Masukkan format \'username/nama-repo\' tempat Anda merilis file APK pembaruan:</string>
+    <string name="toast_repo_saved">Repositori disimpan: %1$s</string>
+
+    <!-- Dialogs & Bike Guide -->
+    <string name="guide_title">🏍️ Hubungkan ke Honda RoadSync (Semua Motor)</string>
+    <string name="guide_message">Langkah menghubungkan agar tombol stang motor Honda Anda mengontrol musik:\n\n1. Pastikan Bluetooth ponsel terhubung ke motor Honda Anda (PCX, ADV, Forza, Hornet, Transalp, CB, dll.) &amp; Helm Intercom.\n\n2. Buka aplikasi resmi Honda RoadSync.\n\n3. Buka Pengaturan (Settings) ➔ Sumber Musik (Music Source).\n\n4. Pilih \'Spotify\' (H-Sync) sebagai sumber musik!\n\n5. Di H-Sync, pilih pemutar musik yang Anda inginkan (BitChord, YouTube Music, dll.).\n\n6. Selesai! Saat berkendara, tombol stang motor Honda akan langsung mengontrol lagu dan judul lagu tampil di layar TFT speedometer!</string>
+    <string name="guide_btn_open">Buka RoadSync Sekarang</string>
+    <string name="guide_btn_close">Tutup</string>
+    <string name="roadsync_not_installed_title">Honda RoadSync Belum Terpasang</string>
+    <string name="roadsync_not_installed_message">Aplikasi resmi Honda RoadSync tidak ditemukan di HP ini. Unduh dari Google Play Store?</string>
+    <string name="btn_open_playstore">Buka Play Store</string>
+    <string name="btn_cancel">Batal</string>
+    <string name="btn_save">Simpan</string>
+
+    <!-- Handlebar HUD Activity -->
+    <string name="btn_open_hud">Buka Moto HUD (Mode Stang)</string>
+    <string name="btn_open_music">Pemutar Musik</string>
+    <string name="hud_exit">Keluar</string>
+    <string name="hud_player_format">🎵 Pemutar: %1$s</string>
+    <string name="hud_gps_accuracy_format">GPS: Akurasi ±%.0fm</string>
+    <string name="hud_altitude_format">Ketinggian: %1$d mdpl</string>
+    <string name="hud_speed_unit">KM / JAM</string>
+    <string name="hud_bearing_locked">%03d° (Kunci GPS Aktif)</string>
+
+    <!-- Player Selector Activity -->
+    <string name="selector_title">Pilih Pemutar Media</string>
+    <string name="selector_subtitle">Pemutar audio &amp; video (Play Store / Luar Play Store)</string>
+    <string name="selector_switch_all">Tampilkan seluruh aplikasi terinstal</string>
+    <string name="selector_selected_format">Terpilih: %1$s</string>
+    <string name="selector_btn_launch">Buka App</string>
+    <string name="selector_toast_active">Pemutar aktif: %1$s</string>
+
+    <!-- Built-in Music Activity -->
+    <string name="music_title">Pemutar Musik Mandiri</string>
+    <string name="music_reload">Muat Ulang</string>
+    <string name="music_select_track">Pilih lagu untuk memulai</string>
+    <string name="music_handlebar_hint">Bisa dikendalikan lewat tombol stang motor</string>
+</resources>

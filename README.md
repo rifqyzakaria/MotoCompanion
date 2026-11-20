@@ -1,8 +1,8 @@
 # 🏍️ H-Sync (Pendamping Cerdas Honda RoadSync)
 
-**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) cerdas dan minimalis karya **mrz92** yang dirancang khusus untuk mendampingi **Honda RoadSync (HSVCS)** di seluruh lini motor Honda (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok koneksi Bluetooth.
+**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) cerdas dan minimalis karya **mrzzz92** yang dirancang khusus untuk mendampingi **Honda RoadSync (HSVCS)** di seluruh lini motor Honda (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok koneksi Bluetooth.
 
-Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **@mrz92** dengan sistem pembaruan otomatis yang terkunci ke repositori resmi GitHub `rifqyzakaria/MotoCompanion`.
+Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **mrzzz92** dengan sistem pembaruan otomatis yang terkunci ke repositori resmi GitHub `rifqyzakaria/MotoCompanion`.
 
 ---
 
@@ -40,7 +40,7 @@ Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **@mrz92** dengan
 
 ## 👨‍💻 Pengembang Resmi
 
-Dibuat & Dikelola secara resmi oleh: **[@mrz92](https://github.com/rifqyzakaria)**  
+Dibuat & Dikelola secara resmi oleh: **[mrzzz92](https://github.com/rifqyzakaria)**  
 Repositori Resmi: [rifqyzakaria/MotoCompanion](https://github.com/rifqyzakaria/MotoCompanion)
 
 ---

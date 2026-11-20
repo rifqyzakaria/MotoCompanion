@@ -1,6 +1,6 @@
-# 🏍️ MotoCompanion (Pendamping Honda RoadSync)
+# 🏍️ H-Sync (Pendamping Cerdas Honda RoadSync)
 
-**MotoCompanion** adalah aplikasi pendamping (*companion app*) Android yang dirancang khusus untuk bekerja berdampingan dengan **Honda RoadSync (HSVCS)** di satu ponsel tanpa bentrok atau kendala koneksi Bluetooth.
+**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (*companion app*) Android yang dirancang khusus untuk bekerja berdampingan dengan **Honda RoadSync (HSVCS)** di seluruh lini motor Honda yang mendukung konektivitas RoadSync (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok atau kendala koneksi Bluetooth.
 
 ---
 

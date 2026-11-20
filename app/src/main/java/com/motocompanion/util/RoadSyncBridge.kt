@@ -8,6 +8,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import androidx.core.content.ContextCompat
+import com.motocompanion.service.GpsTrackingService
+import com.motocompanion.service.MediaSessionService
 
 object RoadSyncBridge {
 
@@ -28,6 +31,22 @@ object RoadSyncBridge {
 
     var isRoadSyncActive: Boolean = false
 
+    fun isTargetDeviceName(name: String?): Boolean {
+        if (name == null) return false
+        val lower = name.lowercase()
+        return lower.contains("honda") || lower.contains("roadsync") ||
+                lower.contains("hsvcs") || lower.contains("btu") ||
+                lower.contains("pcx") || lower.contains("adv") ||
+                lower.contains("forza") || lower.contains("hornet") ||
+                lower.contains("transalp") || lower.contains("cb") ||
+                lower.contains("cbr") || lower.contains("rebel") ||
+                lower.contains("hawk") || lower.contains("africa") ||
+                lower.contains("scooter") || lower.contains("intercom") ||
+                lower.contains("sena") || lower.contains("cardo") ||
+                lower.contains("ejeas") || lower.contains("freedconn") ||
+                lower.contains("helmet") || lower.contains("headset")
+    }
+
     fun isAutoStartEnabled(context: Context): Boolean {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getBoolean(KEY_AUTO_START_BT, true)
@@ -46,6 +65,58 @@ object RoadSyncBridge {
     fun setCompanionActive(context: Context, active: Boolean) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_COMPANION_ACTIVE, active).apply()
+    }
+
+    /**
+     * Otomatis mengaktifkan H-Sync saat motor Honda RoadSync / Bluetooth tersambung
+     */
+    fun startAllServices(context: Context, triggerSource: String = "") {
+        Log.i(TAG, "🟢 Mengaktifkan H-Sync secara otomatis (Trigger: $triggerSource)")
+        isRoadSyncActive = true
+        setCompanionActive(context, true)
+
+        val mediaServiceIntent = Intent(context, MediaSessionService::class.java).apply {
+            action = MediaSessionService.ACTION_START_FOREGROUND
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(context, mediaServiceIntent)
+            } else {
+                context.startService(mediaServiceIntent)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Gagal memulai MediaSessionService: ${e.message}")
+        }
+
+        context.sendBroadcast(Intent(ACTION_ROADSYNC_STATE_CHANGED))
+    }
+
+    /**
+     * Otomatis mematikan H-Sync secara bersih saat motor Honda RoadSync mati / terputus
+     */
+    fun stopAllServices(context: Context, triggerSource: String = "") {
+        Log.i(TAG, "🔴 Mematikan H-Sync secara otomatis (Trigger: $triggerSource)")
+        isRoadSyncActive = false
+        setCompanionActive(context, false)
+
+        // 1. Hentikan MediaSessionService dan bersihkan notifikasi foreground
+        val mediaServiceIntent = Intent(context, MediaSessionService::class.java).apply {
+            action = MediaSessionService.ACTION_STOP_SERVICE
+        }
+        try {
+            context.startService(mediaServiceIntent)
+        } catch (_: Exception) {
+            try {
+                context.stopService(Intent(context, MediaSessionService::class.java))
+            } catch (_: Exception) {}
+        }
+
+        // 2. Hentikan GpsTrackingService
+        try {
+            context.stopService(Intent(context, GpsTrackingService::class.java))
+        } catch (_: Exception) {}
+
+        context.sendBroadcast(Intent(ACTION_ROADSYNC_STATE_CHANGED))
     }
 
     /**
@@ -89,7 +160,7 @@ object RoadSyncBridge {
     }
 
     /**
-     * Mengambil nama perangkat Bluetooth motor PCX atau helm yang sedang terhubung
+     * Mengambil nama perangkat Bluetooth motor Honda atau helm yang sedang terhubung
      */
     fun getConnectedDeviceName(context: Context): String? {
         try {
@@ -105,11 +176,7 @@ object RoadSyncBridge {
 
             bondedDevices?.forEach { device ->
                 val name = try { device.name ?: "" } catch (_: SecurityException) { "" }
-                val lower = name.lowercase()
-                if (lower.contains("honda") || lower.contains("pcx") || lower.contains("adv") ||
-                    lower.contains("hsvcs") || lower.contains("roadsync") || lower.contains("forza") ||
-                    lower.contains("sena") || lower.contains("cardo") || lower.contains("ejeas") ||
-                    lower.contains("freedconn") || lower.contains("intercom") || lower.contains("helmet")) {
+                if (isTargetDeviceName(name)) {
                     return name
                 }
             }

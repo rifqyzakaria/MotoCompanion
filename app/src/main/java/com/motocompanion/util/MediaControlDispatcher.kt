@@ -47,7 +47,7 @@ object MediaControlDispatcher {
 
     fun getSelectedName(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_SELECTED_NAME, "Pemutar Mandiri MotoCompanion") ?: "Pemutar Mandiri MotoCompanion"
+        return prefs.getString(KEY_SELECTED_NAME, "Pemutar Mandiri H-Sync") ?: "Pemutar Mandiri H-Sync"
     }
 
     fun setSelectedPlayer(context: Context, packageName: String, appName: String) {
@@ -66,9 +66,9 @@ object MediaControlDispatcher {
         val pm = context.packageManager
         val playersMap = mutableMapOf<String, InstalledPlayer>()
 
-        // 1. Tambahkan opsi Pemutar Bawaan MotoCompanion di paling atas
+        // 1. Tambahkan opsi Pemutar Bawaan H-Sync di paling atas
         playersMap[INTERNAL_PACKAGE_ID] = InstalledPlayer(
-            appName = "Pemutar Mandiri MotoCompanion (Bawaan)",
+            appName = "Pemutar Mandiri H-Sync (Bawaan)",
             packageName = INTERNAL_PACKAGE_ID,
             icon = ContextCompat.getDrawable(context, R.drawable.ic_bike),
             isInternal = true
@@ -199,7 +199,7 @@ object MediaControlDispatcher {
                     title = song.title,
                     artist = song.artist,
                     isPlaying = isPlaying,
-                    appName = "MotoCompanion (Bawaan)",
+                    appName = "H-Sync (Bawaan)",
                     packageName = INTERNAL_PACKAGE_ID,
                     durationMs = song.durationMs,
                     positionMs = 0L
@@ -209,7 +209,7 @@ object MediaControlDispatcher {
                     title = "Tidak ada lagu yang dipilih",
                     artist = "Buka menu Lagu Offline",
                     isPlaying = false,
-                    appName = "MotoCompanion (Bawaan)",
+                    appName = "H-Sync (Bawaan)",
                     packageName = INTERNAL_PACKAGE_ID,
                     durationMs = 180000L,
                     positionMs = 0L
@@ -251,7 +251,7 @@ object MediaControlDispatcher {
 
         return TrackInfo(
             title = if (isHardwareAudioActive) "Memutar $selectedName" else "Putar $selectedName",
-            artist = "MotoCompanion PCX",
+            artist = "H-Sync Honda",
             isPlaying = isHardwareAudioActive,
             appName = selectedName,
             packageName = selectedPkg,

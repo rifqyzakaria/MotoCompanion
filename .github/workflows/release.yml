@@ -58,26 +58,24 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MotoCompanion-v1.3.2-APK
+          name: H-Sync-v1.4.0-APK
           path: release_assets/MotoCompanion.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.3.2' }}
-          name: "MotoCompanion v1.3.2 (Definitive PCX TFT Meter & RoadSync Fix)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.4.0' }}
+          name: "H-Sync v1.4.0 (Auto-Lifecycle, Rebrand to H-Sync & New Minimalist UI)"
           body: |
-            ### 🏍️ MotoCompanion v1.3.2 (Solusi Tuntas Layar TFT Honda PCX & RoadSync)
+            ### 🏍️ H-Sync v1.4.0 (Pembaruan Otomatisasi Motor Honda, Rebrand & Desain Baru)
 
-            Pembaruan tuntas mengatasi pesan 'Kesalahan Aplikasi Musik' pada dashboard TFT speedometer Honda PCX:
-            - 🔄 **Singleton MediaSession Token**: Semua alias service target RoadSync (`com.spotify.music.libs.mediabrowserservice`, `com.spotify.mediabrowserservice`, `com.spotify.mediabrowserservice.mediabrowserservice`) kini berbagi satu MediaSession yang sama.
-            - 📡 **Siaran Broadcast Resmi Spotify**: Mengirimkan broadcast `com.spotify.music.playbackstatechanged` & `metadatachanged` yang dimonitor oleh Honda RoadSync (Drivemode).
-            - 🛡️ **Hardware Audio Detection**: Menggunakan pendeteksi audio perangkat keras (`isMusicActive`) agar status musik tidak pernah salah terdeteksi mati saat BitChord memutar lagu.
-            - 🔔 **MediaStyle Foreground Notification**: Menjaga notifikasi kontrol musik aktif di status bar sehingga RoadSync tidak memutus koneksi.
-            - 🔑 **Tanda Tangan Kunci Permanen**: Sudah ditandatangani menggunakan keystore permanen yang tersimpan di repositori untuk update mulus seterusnya.
-            - ⚡ **Respon Cepat Tombol Stang PCX**: Menangani callback `onPrepare`, `onPrepareFromMediaId`, dan `onPlay` dengan transisi instan ke status `STATE_PLAYING` dan meneruskannya ke BitChord tanpa timeout.
-            - 🛡️ **Anti Session Conflict**: Memperbaiki deteksi media controller agar tidak membaca paket sendiri.
+            Pembaruan besar sistem pendamping cerdas Honda RoadSync:
+            - ⚡ **Auto-Start & Auto-Stop Cerdas**: H-Sync otomatis aktif saat motor Honda dinyalakan / terhubung Bluetooth, dan otomatis **MATI TOTAL** saat motor dimatikan atau koneksi terputus. Tidak ada lagi proses yang tertinggal di latar belakang atau menguras baterai saat motor mati!
+            - 🏷️ **Rebrand Menjadi 'H-Sync'**: Nama resmi dipersingkat menjadi H-Sync agar modern, elegan, dan mudah dikenali.
+            - 🏍️ **Dukungan Seluruh Lini Motor Honda RoadSync**: Dirancang tidak hanya untuk PCX, tetapi juga seluruh lini motor Honda yang dilengkapi konektivitas RoadSync / HSVCS (ADV 160/350, Forza 250/350/750, X-ADV, CB650R, CB750 Hornet, XL750 Transalp, Rebel 1100, dll.).
+            - 🎨 **Pembaruan Desain UI & UX Minimalis**: Desain antarmuka gelap modern, bersih, nyaman di mata, kontras tinggi saat berkendara siang hari, dan sangat mudah digunakan.
+            - 🎵 **Sinergi Penuh Layar TFT Speedometer**: Menjaga integrasi sempurna dengan BitChord dan pemutar lainnya agar judul lagu dan kontrol stang berjalan instan tanpa pesan kesalahan.
           files: release_assets/MotoCompanion.apk
           draft: false
           prerelease: false

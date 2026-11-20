@@ -43,6 +43,8 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         const val ACTION_NEXT = "com.motocompanion.ACTION_NEXT"
         const val ACTION_PREV = "com.motocompanion.ACTION_PREV"
         const val ACTION_TOGGLE = "com.motocompanion.ACTION_TOGGLE"
+        const val ACTION_START_FOREGROUND = "com.motocompanion.ACTION_START_FOREGROUND"
+        const val ACTION_STOP_SERVICE = "com.motocompanion.ACTION_STOP_SERVICE"
 
         const val BROADCAST_PLAYLIST_UPDATED = "com.motocompanion.PLAYLIST_UPDATED"
         const val BROADCAST_TRACK_CHANGED = "com.motocompanion.TRACK_CHANGED"
@@ -236,7 +238,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
 
         val initialTitle = if (trackInfo != null && trackInfo.isPlaying) trackInfo.title else "Putar $selectedName"
-        val initialArtist = if (trackInfo != null && trackInfo.isPlaying) trackInfo.artist else "MotoCompanion PCX"
+        val initialArtist = if (trackInfo != null && trackInfo.isPlaying) trackInfo.artist else "H-Sync Honda"
         val initialState = if (trackInfo != null && trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PLAYING
 
         val playbackState = PlaybackStateCompat.Builder()
@@ -493,13 +495,38 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         when (intent?.action) {
+            ACTION_STOP_SERVICE -> {
+                handleStopService()
+                return START_NOT_STICKY
+            }
+            ACTION_START_FOREGROUND -> {
+                val selectedName = MediaControlDispatcher.getSelectedName(this)
+                val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
+                val title = if (trackInfo != null && trackInfo.isPlaying) trackInfo.title else "Siap Terhubung"
+                val artist = if (trackInfo != null && trackInfo.isPlaying) trackInfo.artist else "H-Sync Honda RoadSync"
+                updateForegroundNotification(title, artist, trackInfo?.isPlaying ?: false)
+            }
             ACTION_PLAY -> handlePlay()
             ACTION_PAUSE -> handlePause()
             ACTION_NEXT -> handleNext()
             ACTION_PREV -> handlePrev()
             ACTION_TOGGLE -> handleToggle()
         }
-        return START_STICKY
+        return START_NOT_STICKY
+    }
+
+    private fun handleStopService() {
+        Log.i(tag, "handleStopService: Menghentikan service dan membersihkan notifikasi latar belakang")
+        syncHandler.removeCallbacksAndMessages(null)
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+        isPlaying = false
+        try {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } catch (_: Exception) {}
+        broadcastSpotifyState("H-Sync Standby", "Honda RoadSync", "H-Sync", false, 0L, 0L)
+        stopSelf()
     }
 
     private fun handlePlay() {
@@ -590,10 +617,10 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             "Memutar $selectedName"
         }
 
-        val artist = if (trackInfo != null && trackInfo.artist.isNotBlank() && trackInfo.artist != "MotoCompanion PCX") {
+        val artist = if (trackInfo != null && trackInfo.artist.isNotBlank() && trackInfo.artist != "H-Sync Honda") {
             trackInfo.artist
         } else {
-            "MotoCompanion PCX"
+            "H-Sync Honda"
         }
 
         val duration = if (trackInfo != null && trackInfo.durationMs > 0) trackInfo.durationMs else 180000L
@@ -629,7 +656,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
 
         val title = if (trackInfo != null && trackInfo.title.isNotBlank()) trackInfo.title else "Jeda $selectedName"
-        val artist = if (trackInfo != null && trackInfo.artist.isNotBlank()) trackInfo.artist else "MotoCompanion PCX"
+        val artist = if (trackInfo != null && trackInfo.artist.isNotBlank()) trackInfo.artist else "H-Sync Honda"
         val duration = if (trackInfo != null && trackInfo.durationMs > 0) trackInfo.durationMs else 180000L
         val position = trackInfo?.positionMs ?: 0L
 
@@ -663,7 +690,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         val selectedName = MediaControlDispatcher.getSelectedName(this)
 
         val title = if (trackInfo.title.isNotBlank()) trackInfo.title else "Putar $selectedName"
-        val artist = if (trackInfo.artist.isNotBlank()) trackInfo.artist else "MotoCompanion PCX"
+        val artist = if (trackInfo.artist.isNotBlank()) trackInfo.artist else "H-Sync Honda"
         val targetState = if (trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
         val duration = if (trackInfo.durationMs > 0) trackInfo.durationMs else 180000L
 

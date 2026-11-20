@@ -61,8 +61,19 @@ class MainActivity : AppCompatActivity() {
         // Periksa pembaruan di latar belakang saat aplikasi dibuka
         AppUpdateManager.checkForUpdates(this, showUpToDateToast = false)
 
-        // Otomatis jalankan MediaSessionService agar sesi musik & RoadSync langsung tersambung
-        startMediaSessionService()
+        // Otomatis aktifkan hanya jika motor Honda / helm sedang terhubung
+        val isBikeConnected = RoadSyncBridge.getConnectedDeviceName(this) != null
+        if (isBikeConnected) {
+            RoadSyncBridge.startAllServices(this, "MainActivity OnCreate with Connected Bike")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val isBikeConnected = RoadSyncBridge.getConnectedDeviceName(this) != null
+        if (!isBikeConnected && !RoadSyncBridge.isRoadSyncActive) {
+            RoadSyncBridge.stopAllServices(this, "MainActivity Closed with No Bike")
+        }
     }
 
     override fun onResume() {
@@ -270,15 +281,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun showRoadSyncGuideDialog() {
         AlertDialog.Builder(this)
-            .setTitle("🏍️ Hubungkan ke Honda RoadSync (PCX)")
+            .setTitle("🏍️ Hubungkan ke Honda RoadSync (Semua Motor)")
             .setMessage(
-                "Langkah menghubungkan agar tombol stang PCX mengontrol musik Anda:\n\n" +
-                "1. Pastikan Bluetooth ponsel terhubung ke motor Honda PCX & Intercom helm.\n\n" +
+                "Langkah menghubungkan agar tombol stang motor Honda Anda mengontrol musik:\n\n" +
+                "1. Pastikan Bluetooth ponsel terhubung ke motor Honda Anda (PCX, ADV, Forza, Hornet, Transalp, CB, dll.) & Helm Intercom.\n\n" +
                 "2. Buka aplikasi resmi Honda RoadSync.\n\n" +
                 "3. Buka Pengaturan (Settings) ➔ Sumber Musik (Music Source).\n\n" +
-                "4. Pilih 'MotoCompanion' sebagai sumber musik!\n\n" +
-                "5. Di MotoCompanion, pilih pemutar musik yang Anda inginkan (Spotify, YouTube Music, VLC, dll.).\n\n" +
-                "6. Selesai! Saat berkendara, tombol stang motor Honda PCX akan langsung mengontrol lagu dan judul lagu tampil di speedometer!"
+                "4. Pilih 'Spotify' (H-Sync) sebagai sumber musik!\n\n" +
+                "5. Di H-Sync, pilih pemutar musik yang Anda inginkan (BitChord, YouTube Music, dll.).\n\n" +
+                "6. Selesai! Saat berkendara, tombol stang motor Honda akan langsung mengontrol lagu dan judul lagu tampil di layar TFT speedometer!"
             )
             .setPositiveButton("Buka RoadSync Sekarang") { _, _ ->
                 RoadSyncBridge.launchRoadSync(this)
@@ -290,28 +301,11 @@ class MainActivity : AppCompatActivity() {
     private fun toggleCompanionMode() {
         val currentlyActive = RoadSyncBridge.isCompanionActive(this)
         if (!currentlyActive) {
-            RoadSyncBridge.setCompanionActive(this, true)
-            val serviceIntent = Intent(this, MediaSessionService::class.java).apply {
-                action = MediaSessionService.ACTION_TOGGLE
-            }
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    ContextCompat.startForegroundService(this, serviceIntent)
-                } else {
-                    startService(serviceIntent)
-                }
-            } catch (e: Exception) {
-                Log.e("MainActivity", "Gagal start MediaSessionService: ${e.message}")
-            }
-
-            if (hasLocationPermission()) {
-                startGpsService()
-            }
-
-            Toast.makeText(this, "🏍️ Mode Pendamping Honda PCX Aktif!", Toast.LENGTH_SHORT).show()
+            RoadSyncBridge.startAllServices(this, "Manual Toggle")
+            Toast.makeText(this, "🏍️ H-Sync Aktif Mendampingi Motor Honda!", Toast.LENGTH_SHORT).show()
         } else {
-            RoadSyncBridge.setCompanionActive(this, false)
-            Toast.makeText(this, "Mode Pendamping Dinonaktifkan", Toast.LENGTH_SHORT).show()
+            RoadSyncBridge.stopAllServices(this, "Manual Toggle")
+            Toast.makeText(this, "H-Sync Dinonaktifkan", Toast.LENGTH_SHORT).show()
         }
         updateRoadSyncUi()
     }
@@ -322,28 +316,37 @@ class MainActivity : AppCompatActivity() {
         val connectedDevice = RoadSyncBridge.getConnectedDeviceName(this)
 
         if (isCompanionActive) {
-            binding.tvRoadSyncStatus.text = "Status: Aktif Mendampingi Honda PCX 🟢"
+            binding.tvRoadSyncStatus.text = "Honda RoadSync: Aktif 🟢"
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
             binding.btnToggleCompanion.text = "Matikan"
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_red))
             (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_red)
+            binding.tvHeaderStatusBadge.text = "🟢 AKTIF"
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
+            binding.tvHeaderStatusBadge.setBackgroundResource(com.motocompanion.R.drawable.bg_pill_active)
         } else if (isInstalled) {
-            binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi (Otomatis saat RoadSync dibuka) ⚪"
+            binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi ⚪"
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_primary))
             binding.btnToggleCompanion.text = "Aktifkan"
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
             (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_green)
+            binding.tvHeaderStatusBadge.text = "⚪ STANDBY"
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
+            binding.tvHeaderStatusBadge.setBackgroundResource(com.motocompanion.R.drawable.bg_pill)
         } else {
             binding.tvRoadSyncStatus.text = "Honda RoadSync: Belum Terpasang"
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_secondary))
             binding.btnToggleCompanion.text = "Aktifkan"
+            binding.tvHeaderStatusBadge.text = "⚪ OFFLINE"
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_muted))
+            binding.tvHeaderStatusBadge.setBackgroundResource(com.motocompanion.R.drawable.bg_pill)
         }
 
         if (connectedDevice != null) {
             binding.tvBluetoothDeviceName.text = "Bluetooth Motor/Helm: Terhubung ($connectedDevice)"
             binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))
         } else {
-            binding.tvBluetoothDeviceName.text = "Bluetooth Motor/Helm: Belum Terhubung"
+            binding.tvBluetoothDeviceName.text = "Bluetooth Motor: Menunggu Kontak Motor Menyala..."
             binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_amber))
         }
 
@@ -457,19 +460,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 startService(serviceIntent)
             }
-        }
-    }
-
-    private fun startMediaSessionService() {
-        try {
-            val serviceIntent = Intent(this, MediaSessionService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Gagal start MediaSessionService: ${e.message}")
         }
     }
 }

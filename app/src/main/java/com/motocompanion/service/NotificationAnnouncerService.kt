@@ -37,12 +37,9 @@ class NotificationAnnouncerService : NotificationListenerService() {
 
         val pkg = sbn.packageName ?: return
 
-        // 1. Deteksi saat Honda RoadSync dibuka / aktif di latar depan
+        // 1. Deteksi saat Honda RoadSync dibuka / aktif di latar depan -> Auto-Start H-Sync
         if (RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(pkg)) {
-            RoadSyncBridge.isRoadSyncActive = true
-            RoadSyncBridge.setCompanionActive(this, true)
-            Log.i(tag, "Honda RoadSync aktif terdeteksi ($pkg) -> MotoCompanion Auto-Aktif!")
-            sendBroadcast(Intent(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED))
+            RoadSyncBridge.startAllServices(this, "Notifikasi RoadSync ($pkg)")
             return
         }
 
@@ -186,10 +183,7 @@ class NotificationAnnouncerService : NotificationListenerService() {
             }
 
             if (!stillPresent && RoadSyncBridge.getConnectedDeviceName(this) == null) {
-                RoadSyncBridge.isRoadSyncActive = false
-                RoadSyncBridge.setCompanionActive(this, false)
-                Log.i(tag, "Honda RoadSync ditutup -> MotoCompanion standby")
-                sendBroadcast(Intent(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED))
+                RoadSyncBridge.stopAllServices(this, "Notifikasi RoadSync ditutup")
             }
         }
 

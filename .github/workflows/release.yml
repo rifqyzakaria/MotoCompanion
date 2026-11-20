@@ -47,22 +47,22 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MotoCompanion-v1.2.0-APK
+          name: MotoCompanion-v1.2.1-APK
           path: release_assets/MotoCompanion.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: v1.2.0
-          name: "MotoCompanion v1.2.0 (Honda PCX & RoadSync Companion)"
+          tag_name: v1.2.1
+          name: "MotoCompanion v1.2.1 (Automotive & RoadSync Media Integration)"
           body: |
-            ### 🏍️ MotoCompanion v1.2.0 (Integrasi Honda PCX & RoadSync)
+            ### 🏍️ MotoCompanion v1.2.1 (Integrasi Media Honda PCX & RoadSync)
 
-            Pembaruan besar integrasi resmi untuk Honda PCX dan Honda RoadSync:
-            - 🏍️ **Integrasi Penuh Honda RoadSync (HSVCS)**: MotoCompanion kini terdaftar resmi sebagai penyedia musik (`MediaBrowserService` & `APP_MUSIC`) di menu Sumber Musik Honda RoadSync.
-            - 🎮 **Kontrol Tombol Stang Honda PCX**: Tombol navigasi stang motor Honda PCX (Play, Pause, Next, Prev) di menu musik RoadSync langsung mengendalikan Spotify, YouTube Music, VLC, dll.
-            - 📡 **Bluetooth Auto-Start**: Mendeteksi otomatis koneksi Bluetooth motor Honda PCX / helm intercom dan menyalakan mode pendamping tanpa perlu buka aplikasi manual.
+            Pembaruan kompatibilitas media untuk Honda RoadSync dan Android Auto:
+            - 🚗 **Android Automotive & MediaBrowser XML**: Menambahkan deskriptor resmi `automotive_app_desc.xml` dan meta-data `com.google.android.gms.car.application` agar dikenali oleh sistem dashboard motor dan mobil.
+            - 🎵 **Extended Media Intents**: Mendukung `MUSIC_PLAYER`, `APP_MUSIC`, `VIEW audio/*`, dan `MediaBrowserServiceCompat`.
+            - 🎮 **Kontrol Tombol Stang Honda PCX & Intercom**: Meneruskan tombol navigasi stang dan intercom langsung ke pemutar musik aktif.
             - 📻 **Sinkronisasi Judul Lagu ke Speedometer**: Judul lagu dan nama artis dari aplikasi pihak ketiga dikirim ke MediaSession RoadSync agar muncul di layar speedometer PCX.
             - 🚀 **Auto-Wake Engine**: Membangunkan pemutar musik secara otomatis saat tombol Play ditekan jika pemutar sedang tertidur.
             - 🎛️ **Card Status Pendamping di Dashboard**: Menampilkan status koneksi RoadSync, Bluetooth motor, tombol Buka RoadSync, dan panduan 1-menit.

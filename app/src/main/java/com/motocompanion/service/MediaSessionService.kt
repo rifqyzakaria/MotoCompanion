@@ -8,6 +8,8 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -15,15 +17,16 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
 import com.motocompanion.App
 import com.motocompanion.R
 import com.motocompanion.model.Song
+import com.motocompanion.ui.MainActivity
 import com.motocompanion.ui.MusicActivity
 import com.motocompanion.util.MediaControlDispatcher
-import android.view.KeyEvent
 
 open class MediaSessionService : MediaBrowserServiceCompat() {
 
@@ -54,11 +57,43 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private var mediaPlayer: MediaPlayer? = null
 
+    private val syncHandler = Handler(Looper.getMainLooper())
+    private var lastSyncedTitle = ""
+    private var lastSyncedArtist = ""
+    private var lastSyncedState = -1
+
+    private val syncRunnable = object : Runnable {
+        override fun run() {
+            val selectedPkg = MediaControlDispatcher.getSelectedPackage(this@MediaSessionService)
+            if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+                syncExternalPlayer()
+            }
+            syncHandler.postDelayed(this, 1000L)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
 
         initMediaSession()
         loadLocalSongs()
+
+        // Mulai background sync loop setiap 1 detik agar RoadSync & PCX TFT selalu menerima lagu terkini
+        syncHandler.post(syncRunnable)
+    }
+
+    private fun getSupportedActions(): Long {
+        return PlaybackStateCompat.ACTION_PLAY or
+                PlaybackStateCompat.ACTION_PAUSE or
+                PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                PlaybackStateCompat.ACTION_STOP or
+                PlaybackStateCompat.ACTION_PREPARE or
+                PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
+                PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
+                PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
+                PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
     }
 
     private fun initMediaSession() {
@@ -67,19 +102,46 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             this, 0, mediaButtonReceiverIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
+        val sessionActivityIntent = Intent(this, MainActivity::class.java)
+        val sessionActivityPendingIntent = PendingIntent.getActivity(
+            this, 0, sessionActivityIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         mediaSession = MediaSessionCompat(this, "MotoMediaSession", null, mediaButtonPendingIntent).apply {
+            setSessionActivity(sessionActivityPendingIntent)
             setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
                         MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
             )
 
             setCallback(object : MediaSessionCompat.Callback() {
+                override fun onPrepare() {
+                    Log.i(tag, "onPrepare diterima dari RoadSync / PCX")
+                    handlePlay()
+                }
+
+                override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
+                    Log.i(tag, "onPrepareFromMediaId diterima dari RoadSync / PCX: $mediaId")
+                    onPlayFromMediaId(mediaId, extras)
+                }
+
+                override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
+                    Log.i(tag, "onPrepareFromSearch diterima dari RoadSync / PCX: $query")
+                    onPlayFromSearch(query, extras)
+                }
+
                 override fun onPlay() {
+                    Log.i(tag, "onPlay diterima dari RoadSync / PCX")
                     handlePlay()
                 }
 
                 override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-                    Log.i(tag, "onPlayFromMediaId diterima dari RoadSync: $mediaId")
+                    Log.i(tag, "onPlayFromMediaId diterima dari RoadSync / PCX: $mediaId")
+                    val selectedPkg = MediaControlDispatcher.getSelectedPackage(this@MediaSessionService)
+                    if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+                        handlePlay()
+                        return
+                    }
                     if (mediaId == MEDIA_ITEM_STREAM_ID) {
                         handlePlay()
                     } else {
@@ -94,23 +156,27 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
                 }
 
                 override fun onPlayFromSearch(query: String?, extras: Bundle?) {
-                    Log.i(tag, "onPlayFromSearch diterima dari RoadSync: $query")
+                    Log.i(tag, "onPlayFromSearch diterima dari RoadSync / PCX: $query")
                     handlePlay()
                 }
 
                 override fun onPause() {
+                    Log.i(tag, "onPause diterima dari RoadSync / PCX")
                     handlePause()
                 }
 
                 override fun onSkipToNext() {
+                    Log.i(tag, "onSkipToNext diterima dari RoadSync / PCX")
                     handleNext()
                 }
 
                 override fun onSkipToPrevious() {
+                    Log.i(tag, "onSkipToPrevious diterima dari RoadSync / PCX")
                     handlePrev()
                 }
 
                 override fun onStop() {
+                    Log.i(tag, "onStop diterima dari RoadSync / PCX")
                     handleStop()
                 }
 
@@ -126,8 +192,15 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
                     if (keyEvent != null && keyEvent.action == KeyEvent.ACTION_DOWN) {
                         val selectedPkg = MediaControlDispatcher.getSelectedPackage(this@MediaSessionService)
                         if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
-                            MediaControlDispatcher.dispatchMediaAction(this@MediaSessionService, keyEvent.keyCode)
-                            updateExternalPlayerMetadata()
+                            when (keyEvent.keyCode) {
+                                KeyEvent.KEYCODE_MEDIA_PLAY -> handlePlay()
+                                KeyEvent.KEYCODE_MEDIA_PAUSE -> handlePause()
+                                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> handleToggle()
+                                KeyEvent.KEYCODE_MEDIA_NEXT -> handleNext()
+                                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> handlePrev()
+                                KeyEvent.KEYCODE_MEDIA_STOP -> handleStop()
+                                else -> MediaControlDispatcher.dispatchMediaAction(this@MediaSessionService, keyEvent.keyCode)
+                            }
                             return true
                         }
                     }
@@ -139,6 +212,34 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         }
 
         sessionToken = mediaSession.sessionToken
+
+        // SEGERA INISIALISASI PlaybackState dan Metadata default agar RoadSync & TFT PCX tidak menganggap Spotify mati / belum login
+        val selectedName = MediaControlDispatcher.getSelectedName(this)
+        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
+
+        val initialTitle = if (trackInfo != null && trackInfo.isPlaying) trackInfo.title else "Putar $selectedName"
+        val initialArtist = if (trackInfo != null && trackInfo.isPlaying) trackInfo.artist else "MotoCompanion PCX"
+        val initialState = if (trackInfo != null && trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+
+        val playbackState = PlaybackStateCompat.Builder()
+            .setActions(getSupportedActions())
+            .setState(initialState, trackInfo?.positionMs ?: 0L, if (initialState == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f)
+            .build()
+        mediaSession.setPlaybackState(playbackState)
+
+        val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, initialTitle)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, initialArtist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, selectedName)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, initialTitle)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, initialArtist)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, trackInfo?.durationMs ?: 180000L)
+            .build()
+        mediaSession.setMetadata(metadata)
+
+        lastSyncedTitle = initialTitle
+        lastSyncedArtist = initialArtist
+        lastSyncedState = initialState
     }
 
     fun loadLocalSongs() {
@@ -252,14 +353,8 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
     private fun updatePlaybackState(state: Int) {
         val playbackState = PlaybackStateCompat.Builder()
-            .setActions(
-                PlaybackStateCompat.ACTION_PLAY or
-                        PlaybackStateCompat.ACTION_PAUSE or
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                        PlaybackStateCompat.ACTION_STOP
-            )
-            .setState(state, mediaPlayer?.currentPosition?.toLong() ?: 0L, 1.0f)
+            .setActions(getSupportedActions())
+            .setState(state, mediaPlayer?.currentPosition?.toLong() ?: 0L, if (state == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f)
             .build()
 
         mediaSession.setPlaybackState(playbackState)
@@ -269,6 +364,9 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "MotoCompanion Musik")
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, song.title)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, song.artist)
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.durationMs)
             .build()
 
@@ -339,8 +437,15 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
             if (!isPlaying) playTrack(currentIndex)
         } else {
+            // 1. Seketika ubah state MediaSession ke STATE_PLAYING agar RoadSync & TFT PCX tidak menganggap timeout / eror
+            forcePlayingState()
+            // 2. Meneruskan perintah Play ke pemutar yang dipilih (misal BitChord)
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY)
-            updateExternalPlayerMetadata()
+            // 3. Sinkronisasi metadata lagu dari pemutar tersebut
+            syncExternalPlayer()
+            syncHandler.postDelayed({ syncExternalPlayer() }, 300L)
+            syncHandler.postDelayed({ syncExternalPlayer() }, 800L)
+            syncHandler.postDelayed({ syncExternalPlayer() }, 1500L)
         }
     }
 
@@ -349,8 +454,10 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
             if (isPlaying) pauseTrack()
         } else {
+            forcePausedState()
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PAUSE)
-            updateExternalPlayerMetadata()
+            syncExternalPlayer()
+            syncHandler.postDelayed({ syncExternalPlayer() }, 300L)
         }
     }
 
@@ -360,7 +467,9 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             nextTrack()
         } else {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
-            updateExternalPlayerMetadata()
+            forcePlayingState()
+            syncHandler.postDelayed({ syncExternalPlayer() }, 400L)
+            syncHandler.postDelayed({ syncExternalPlayer() }, 1200L)
         }
     }
 
@@ -370,7 +479,9 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             prevTrack()
         } else {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
-            updateExternalPlayerMetadata()
+            forcePlayingState()
+            syncHandler.postDelayed({ syncExternalPlayer() }, 400L)
+            syncHandler.postDelayed({ syncExternalPlayer() }, 1200L)
         }
     }
 
@@ -379,8 +490,12 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
             if (isPlaying) pauseTrack() else playTrack(currentIndex)
         } else {
-            MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
-            updateExternalPlayerMetadata()
+            val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
+            if (trackInfo?.isPlaying == true) {
+                handlePause()
+            } else {
+                handlePlay()
+            }
         }
     }
 
@@ -389,53 +504,155 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         if (selectedPkg == MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
             stopTrack()
         } else {
+            forcePausedState()
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_STOP)
-            updateExternalPlayerMetadata()
+            syncExternalPlayer()
+        }
+    }
+
+    fun forcePlayingState() {
+        val selectedName = MediaControlDispatcher.getSelectedName(this)
+        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
+
+        val title = if (trackInfo != null && trackInfo.title.isNotBlank() && trackInfo.title != "Putar $selectedName") {
+            trackInfo.title
+        } else {
+            "Memutar $selectedName"
+        }
+
+        val artist = if (trackInfo != null && trackInfo.artist.isNotBlank() && trackInfo.artist != "MotoCompanion PCX") {
+            trackInfo.artist
+        } else {
+            "MotoCompanion PCX"
+        }
+
+        val duration = if (trackInfo != null && trackInfo.durationMs > 0) trackInfo.durationMs else 180000L
+        val position = trackInfo?.positionMs ?: 0L
+
+        val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, trackInfo?.appName ?: selectedName)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artist)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+            .build()
+        mediaSession.setMetadata(metadata)
+
+        val playbackState = PlaybackStateCompat.Builder()
+            .setActions(getSupportedActions())
+            .setState(PlaybackStateCompat.STATE_PLAYING, position, 1.0f)
+            .build()
+        mediaSession.setPlaybackState(playbackState)
+
+        lastSyncedTitle = title
+        lastSyncedArtist = artist
+        lastSyncedState = PlaybackStateCompat.STATE_PLAYING
+    }
+
+    fun forcePausedState() {
+        val selectedName = MediaControlDispatcher.getSelectedName(this)
+        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
+
+        val title = if (trackInfo != null && trackInfo.title.isNotBlank()) trackInfo.title else "Jeda $selectedName"
+        val artist = if (trackInfo != null && trackInfo.artist.isNotBlank()) trackInfo.artist else "MotoCompanion PCX"
+        val duration = if (trackInfo != null && trackInfo.durationMs > 0) trackInfo.durationMs else 180000L
+        val position = trackInfo?.positionMs ?: 0L
+
+        val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, trackInfo?.appName ?: selectedName)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artist)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+            .build()
+        mediaSession.setMetadata(metadata)
+
+        val playbackState = PlaybackStateCompat.Builder()
+            .setActions(getSupportedActions())
+            .setState(PlaybackStateCompat.STATE_PAUSED, position, 0.0f)
+            .build()
+        mediaSession.setPlaybackState(playbackState)
+
+        lastSyncedTitle = title
+        lastSyncedArtist = artist
+        lastSyncedState = PlaybackStateCompat.STATE_PAUSED
+    }
+
+    fun syncExternalPlayer() {
+        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this) ?: return
+        val selectedName = MediaControlDispatcher.getSelectedName(this)
+
+        val title = if (trackInfo.title.isNotBlank()) trackInfo.title else "Putar $selectedName"
+        val artist = if (trackInfo.artist.isNotBlank()) trackInfo.artist else "MotoCompanion PCX"
+        val targetState = if (trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+        val duration = if (trackInfo.durationMs > 0) trackInfo.durationMs else 180000L
+
+        var changed = false
+
+        if (title != lastSyncedTitle || artist != lastSyncedArtist) {
+            lastSyncedTitle = title
+            lastSyncedArtist = artist
+            val metadata = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, trackInfo.appName.ifBlank { selectedName })
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artist)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+                .build()
+            mediaSession.setMetadata(metadata)
+            changed = true
+            Log.d(tag, "Synced track info ke RoadSync & TFT PCX: $title - $artist")
+        }
+
+        if (targetState != lastSyncedState || changed) {
+            lastSyncedState = targetState
+            val playbackState = PlaybackStateCompat.Builder()
+                .setActions(getSupportedActions())
+                .setState(targetState, trackInfo.positionMs, if (targetState == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f)
+                .build()
+            mediaSession.setPlaybackState(playbackState)
+            Log.d(tag, "Synced state ke RoadSync & TFT PCX: $targetState")
         }
     }
 
     fun updateExternalPlayerMetadata() {
-        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this) ?: return
-        val metadata = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, trackInfo.title)
-            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, trackInfo.artist)
-            .build()
-        mediaSession.setMetadata(metadata)
-
-        val state = if (trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
-        val playbackState = PlaybackStateCompat.Builder()
-            .setActions(
-                PlaybackStateCompat.ACTION_PLAY or
-                        PlaybackStateCompat.ACTION_PAUSE or
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                        PlaybackStateCompat.ACTION_STOP
-            )
-            .setState(state, 0L, 1.0f)
-            .build()
-        mediaSession.setPlaybackState(playbackState)
+        syncExternalPlayer()
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
         Log.i(tag, "MediaBrowser client connected: $clientPackageName")
-        // Izinkan semua client termasuk Honda RoadSync (com.honda.ms.dm.sab)
-        return BrowserRoot(MEDIA_ROOT_ID, null)
+        val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
+        if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
+            syncExternalPlayer()
+        }
+
+        val rootExtras = Bundle().apply {
+            putBoolean("android.media.browse.SEARCH_SUPPORTED", true)
+            putBoolean("androidx.media.MediaBrowserCompat.Extras.KEY_SEARCH_SUPPORTED", true)
+            putBoolean("android.service.media.extra.OFFLINE", false)
+        }
+        return BrowserRoot(MEDIA_ROOT_ID, rootExtras)
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
         val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem>()
         val selectedName = MediaControlDispatcher.getSelectedName(this)
+        val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this)
 
-        // 1. Playable stream item untuk Honda RoadSync
+        val currentTitle = if (trackInfo != null && trackInfo.isPlaying) trackInfo.title else "▶ Putar $selectedName"
+        val currentArtist = if (trackInfo != null && trackInfo.isPlaying) trackInfo.artist else "Kontrol Honda PCX via MotoCompanion"
+
         val streamDesc = MediaDescriptionCompat.Builder()
             .setMediaId(MEDIA_ITEM_STREAM_ID)
-            .setTitle("▶ Putar $selectedName")
-            .setSubtitle("Kontrol Honda PCX via MotoCompanion")
+            .setTitle(currentTitle)
+            .setSubtitle(currentArtist)
             .setDescription("Meneruskan tombol stang ke pemutar musik terpilih")
             .build()
         mediaItems.add(MediaBrowserCompat.MediaItem(streamDesc, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
 
-        // 2. Playable playlist items jika ada lagu lokal
         for (song in playlist) {
             val desc = MediaDescriptionCompat.Builder()
                 .setMediaId(song.id.toString())
@@ -450,6 +667,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         super.onDestroy()
+        syncHandler.removeCallbacksAndMessages(null)
         mediaPlayer?.release()
         mediaSession.release()
     }

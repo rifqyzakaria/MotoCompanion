@@ -35,7 +35,9 @@ object MediaControlDispatcher {
         val artist: String,
         val isPlaying: Boolean,
         val appName: String,
-        val packageName: String
+        val packageName: String,
+        val durationMs: Long = 0L,
+        val positionMs: Long = 0L
     )
 
     fun getSelectedPackage(context: Context): String {
@@ -150,23 +152,27 @@ object MediaControlDispatcher {
             val componentName = ComponentName(context, NotificationAnnouncerService::class.java)
             val activeSessions = mediaSessionManager.getActiveSessions(componentName)
 
-            // Cari session yang package-nya persis cocok dengan target
+            // 1. Cari session yang package-nya persis cocok dengan target (hindari package MotoCompanion sendiri)
             for (controller in activeSessions) {
+                if (controller.packageName == context.packageName) continue
                 if (controller.packageName.equals(pkg, ignoreCase = true)) {
                     return controller
                 }
             }
 
-            // Jika targetPackage tidak dispesifikasikan khusus, ambil session aktif yang sedang memutar musik
-            if (targetPackage == null) {
-                for (controller in activeSessions) {
-                    val state = controller.playbackState?.state
-                    if (state == PlaybackState.STATE_PLAYING) {
-                        return controller
-                    }
+            // 2. Jika tidak ditemukan yang cocok persis dengan pkg, cari session yang sedang memutar (PLAYING)
+            for (controller in activeSessions) {
+                if (controller.packageName == context.packageName) continue
+                val state = controller.playbackState?.state
+                if (state == PlaybackState.STATE_PLAYING) {
+                    return controller
                 }
-                if (activeSessions.isNotEmpty()) {
-                    return activeSessions[0]
+            }
+
+            // 3. Fallback: ambil session pertama yang bukan package MotoCompanion sendiri
+            for (controller in activeSessions) {
+                if (controller.packageName != context.packageName) {
+                    return controller
                 }
             }
         } catch (e: SecurityException) {
@@ -194,7 +200,9 @@ object MediaControlDispatcher {
                     artist = song.artist,
                     isPlaying = isPlaying,
                     appName = "MotoCompanion (Bawaan)",
-                    packageName = INTERNAL_PACKAGE_ID
+                    packageName = INTERNAL_PACKAGE_ID,
+                    durationMs = song.durationMs,
+                    positionMs = 0L
                 )
             } else {
                 TrackInfo(
@@ -202,12 +210,14 @@ object MediaControlDispatcher {
                     artist = "Buka menu Lagu Offline",
                     isPlaying = false,
                     appName = "MotoCompanion (Bawaan)",
-                    packageName = INTERNAL_PACKAGE_ID
+                    packageName = INTERNAL_PACKAGE_ID,
+                    durationMs = 180000L,
+                    positionMs = 0L
                 )
             }
         }
 
-        // Kasus 2: Aplikasi Pihak Ketiga (Spotify, YouTube Music, VLC, dll.)
+        // Kasus 2: Aplikasi Pihak Ketiga (BitChord, Spotify, YouTube Music, VLC, dll.)
         val controller = getActiveMediaController(context, selectedPkg) ?: getActiveMediaController(context, null)
         if (controller != null) {
             val metadata = controller.metadata
@@ -222,21 +232,28 @@ object MediaControlDispatcher {
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_AUTHOR)
                 ?: selectedName
 
+            val duration = metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+            val position = state?.position ?: 0L
+
             return TrackInfo(
                 title = title,
                 artist = artist,
                 isPlaying = isPlaying,
                 appName = selectedName,
-                packageName = controller.packageName
+                packageName = controller.packageName,
+                durationMs = if (duration > 0) duration else 180000L,
+                positionMs = position
             )
         }
 
         return TrackInfo(
-            title = "Pemutar Siap",
-            artist = "Tekan Play untuk mulai memutar",
+            title = "Putar $selectedName",
+            artist = "MotoCompanion PCX",
             isPlaying = false,
             appName = selectedName,
-            packageName = selectedPkg
+            packageName = selectedPkg,
+            durationMs = 180000L,
+            positionMs = 0L
         )
     }
 

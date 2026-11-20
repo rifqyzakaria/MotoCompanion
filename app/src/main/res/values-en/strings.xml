@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Identity -->
+    <!-- App Identity & Author -->
     <string name="app_name">H-Sync</string>
     <string name="service_announcer_name">WA Call &amp; Message Announcer for Motorcycle</string>
     <string name="title_dashboard">H-SYNC</string>
     <string name="subtitle_dashboard">Smart Companion for Honda RoadSync</string>
+    <string name="app_author">Created by @mrz92</string>
+    <string name="app_footer">H-Sync • Smart Companion for Honda RoadSync • Created by @mrz92</string>
+    <string name="official_source_desc">Official Source: github.com/rifqyzakaria/MotoCompanion</string>
+    <string name="badge_verified_author">🛡️ @mrz92 OFFICIAL</string>
 
     <!-- Status Badges -->
     <string name="status_active">🟢 ACTIVE</string>
@@ -30,6 +34,11 @@
 
     <!-- Music Control Section -->
     <string name="section_media_control">MUSIC PLAYER CONTROL (TFT &amp; HANDLEBAR)</string>
+    <string name="switch_hsync_music_title">Use H-Sync Music Player</string>
+    <string name="switch_hsync_music_desc_on">Enabled: RoadSync uses H-Sync to control BitChord &amp; custom players</string>
+    <string name="switch_hsync_music_desc_off">Disabled: RoadSync can use other whitelisted players (native Spotify, YT Music, VLC, etc.)</string>
+    <string name="toast_hsync_music_on">H-Sync music player enabled for Honda RoadSync</string>
+    <string name="toast_hsync_music_off">H-Sync music player disabled (RoadSync can now use Spotify/YT Music/VLC)</string>
     <string name="label_selected_player">Selected Player</string>
     <string name="btn_change">Change</string>
     <string name="no_music_playing">🎵 No track playing</string>
@@ -92,14 +101,18 @@
     <string name="btn_configure">Setup</string>
     <string name="current_version_format">Current Version: v%1$s</string>
     <string name="btn_check_update">Check GitHub Updates</string>
-    <string name="toast_checking_update">Checking latest release on GitHub...</string>
-    <string name="dialog_set_repo_title">Set GitHub Repository</string>
-    <string name="dialog_set_repo_message">Enter \'username/repo-name\' where update APK files are published:</string>
-    <string name="toast_repo_saved">Repository saved: %1$s</string>
+    <string name="toast_checking_update">Checking for updates from official GitHub source (@mrz92)...</string>
+    <string name="update_dialog_title">Official Update: %1$s (@mrz92)</string>
+    <string name="update_dialog_message">A new official release by @mrz92 is available on GitHub!\n\nChangelog:\n%1$s\n\nDownload and install official update now?</string>
+    <string name="update_dialog_btn_download">Update Now</string>
+    <string name="update_dialog_btn_later">Later</string>
+    <string name="update_downloading_title">Downloading Official Update</string>
+    <string name="update_downloading_message">Downloading version %1$s from official @mrz92 repository...</string>
+    <string name="update_up_to_date">Application is up to date (%1$s) by @mrz92</string>
 
-    <!-- Dialogs & Bike Guide -->
-    <string name="guide_title">🏍️ Connect to Honda RoadSync (All Bikes)</string>
-    <string name="guide_message">Steps to connect motorcycle handlebar buttons to your music:\n\n1. Ensure your phone Bluetooth is connected to your Honda motorcycle (PCX, ADV, Forza, Hornet, Transalp, CB, etc.) &amp; Helmet Intercom.\n\n2. Open the official Honda RoadSync app.\n\n3. Go to Settings ➔ Music Source.\n\n4. Select \'Spotify\' (H-Sync) as the music source!\n\n5. In H-Sync, choose your desired music player (BitChord, YouTube Music, etc.).\n\n6. Done! While riding, your Honda handlebar buttons will directly control tracks and song titles will appear on your TFT display!</string>
+    <!-- Dialogs & Bike Guide (Symmetrical & Clean) -->
+    <string name="guide_title">🏍️ Honda RoadSync Connection Guide</string>
+    <string name="guide_message">Quick guide to connect H-Sync with your Honda motorcycle (PCX, ADV, Forza, Hornet, CB, Transalp, Rebel, etc.):\n\n📌 Step 1: Bluetooth Connection\nEnsure your phone is connected to your Honda bike and Helmet Intercom.\n\n📌 Step 2: Open Honda RoadSync\nOpen RoadSync app on your phone ➔ Go to Settings ➔ Music Source.\n\n📌 Step 3: Select Music Source\n• To use H-Sync (BitChord/custom player): Enable the H-Sync music player switch, then select \'Spotify\' (H-Sync) in RoadSync.\n• To use native whitelisted players: Turn off the H-Sync music player switch, then select native Spotify / YouTube Music / VLC directly in RoadSync.\n\n📌 Step 4: Ready to Ride\nHandlebar buttons (Play, Pause, Next, Prev) directly control music and track titles display cleanly on your TFT meter!</string>
     <string name="guide_btn_open">Open RoadSync Now</string>
     <string name="guide_btn_close">Close</string>
     <string name="roadsync_not_installed_title">Honda RoadSync Not Installed</string>

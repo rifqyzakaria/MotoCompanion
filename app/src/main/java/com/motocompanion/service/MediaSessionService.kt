@@ -29,6 +29,7 @@ import com.motocompanion.model.Song
 import com.motocompanion.ui.MainActivity
 import com.motocompanion.ui.MusicActivity
 import com.motocompanion.util.MediaControlDispatcher
+import com.motocompanion.util.RoadSyncBridge
 
 open class MediaSessionService : MediaBrowserServiceCompat() {
 
@@ -493,6 +494,11 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action != ACTION_STOP_SERVICE && !RoadSyncBridge.isMusicPlayerEnabled(this)) {
+            Log.w(tag, "Service musik dipanggil namun sedang dinonaktifkan oleh pengguna. Menghentikan service.")
+            handleStopService()
+            return START_NOT_STICKY
+        }
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         when (intent?.action) {
             ACTION_STOP_SERVICE -> {
@@ -732,7 +738,11 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         syncExternalPlayer()
     }
 
-    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        if (!RoadSyncBridge.isMusicPlayerEnabled(this)) {
+            Log.w(tag, "MediaBrowser client $clientPackageName ditolak karena pemutar musik H-Sync sedang dinonaktifkan")
+            return null
+        }
         Log.i(tag, "MediaBrowser client connected: $clientPackageName")
         val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
         if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {

@@ -13,6 +13,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.motocompanion.BuildConfig
+import com.motocompanion.R
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -23,9 +24,8 @@ import kotlin.concurrent.thread
 object AppUpdateManager {
 
     private const val TAG = "MotoAppUpdate"
-    private const val PREFS_NAME = "moto_update_prefs"
-    const val KEY_GITHUB_REPO = "github_repo_path"
-    const val DEFAULT_REPO = "rifqyzakaria/MotoCompanion"
+    const val OFFICIAL_AUTHOR = "@mrz92"
+    const val OFFICIAL_REPO = "rifqyzakaria/MotoCompanion"
 
     data class ReleaseInfo(
         val tagName: String,
@@ -34,44 +34,19 @@ object AppUpdateManager {
         val apkDownloadUrl: String
     )
 
-    fun cleanRepoPath(raw: String): String {
-        var cleaned = raw.trim()
-        if (cleaned.startsWith("https://", ignoreCase = true)) {
-            cleaned = cleaned.substring(8)
-        } else if (cleaned.startsWith("http://", ignoreCase = true)) {
-            cleaned = cleaned.substring(7)
-        }
-        if (cleaned.startsWith("github.com/", ignoreCase = true)) {
-            cleaned = cleaned.substring(11)
-        }
-        cleaned = cleaned.trim('/')
-        val parts = cleaned.split("/").filter { it.isNotBlank() }
-        if (parts.size >= 2) {
-            return "${parts[0]}/${parts[1]}"
-        }
-        return cleaned.ifBlank { DEFAULT_REPO }
-    }
-
-    fun getSavedRepo(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val saved = prefs.getString(KEY_GITHUB_REPO, DEFAULT_REPO) ?: DEFAULT_REPO
-        return cleanRepoPath(saved)
-    }
-
-    fun setSavedRepo(context: Context, repoPath: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_GITHUB_REPO, cleanRepoPath(repoPath)).apply()
+    fun getSavedRepo(context: Context? = null): String {
+        return OFFICIAL_REPO
     }
 
     /**
-     * Memeriksa pembaruan terbaru dari GitHub Releases
+     * Memeriksa pembaruan terbaru langsung dan hanya dari repositori resmi GitHub @mrz92
      */
     fun checkForUpdates(
         context: Context,
         showUpToDateToast: Boolean = false,
         onUpdateFound: ((ReleaseInfo) -> Unit)? = null
     ) {
-        val repoPath = getSavedRepo(context)
+        val repoPath = OFFICIAL_REPO
         val mainHandler = Handler(Looper.getMainLooper())
 
         thread {
@@ -89,10 +64,13 @@ object AppUpdateManager {
                     val json = JSONObject(response)
 
                     val tagName = json.getString("tag_name")
-                    val body = json.optString("body", "Pembaruan versi terbaru.")
+                    val rawBody = json.optString("body", "Pembaruan versi resmi terbaru.")
                     val cleanRemoteVersion = tagName.replace("[^0-9.]".toRegex(), "")
 
-                    // Cari file APK di aset rilis
+                    // Format changelog agar rapi, simetris, dan mudah dibaca di layar HP
+                    val cleanChangelog = formatChangelog(rawBody)
+
+                    // Cari file APK di aset rilis resmi
                     var apkUrl: String? = null
                     val assets = json.getJSONArray("assets")
                     for (i in 0 until assets.length()) {
@@ -108,7 +86,7 @@ object AppUpdateManager {
 
                     mainHandler.post {
                         if (apkUrl != null && isNewerVersion(cleanRemoteVersion, currentVersion)) {
-                            val release = ReleaseInfo(tagName, cleanRemoteVersion, body, apkUrl)
+                            val release = ReleaseInfo(tagName, cleanRemoteVersion, cleanChangelog, apkUrl)
                             if (onUpdateFound != null) {
                                 onUpdateFound(release)
                             } else {
@@ -118,24 +96,14 @@ object AppUpdateManager {
                             if (showUpToDateToast) {
                                 Toast.makeText(
                                     context,
-                                    "Aplikasi sudah versi terbaru ($currentVersion)",
+                                    context.getString(R.string.update_up_to_date, currentVersion),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
                         }
                     }
-                } else if (connection.responseCode == 404) {
-                    mainHandler.post {
-                        if (showUpToDateToast) {
-                            Toast.makeText(
-                                context,
-                                "Rilis '$repoPath' tidak ditemukan (404). Pastikan repositori GitHub sudah diubah menjadi PUBLIC di Settings.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
                 } else {
-                    Log.w(TAG, "GitHub API returned code: ${connection.responseCode}")
+                    Log.w(TAG, "GitHub API code: ${connection.responseCode}")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Gagal memeriksa pembaruan GitHub: ${e.message}")
@@ -146,6 +114,21 @@ object AppUpdateManager {
                 }
             }
         }
+    }
+
+    private fun formatChangelog(raw: String): String {
+        return raw.lines()
+            .map { it.trim() }
+            .filter { line ->
+                !line.startsWith("###") && !line.startsWith("files:") && !line.isNotBlank() || line.isNotBlank()
+            }
+            .joinToString("\n") { line ->
+                line.replace("###", "")
+                    .replace("**", "")
+                    .replace("`", "")
+                    .trim()
+            }
+            .trim()
     }
 
     private fun isNewerVersion(remote: String, current: String): Boolean {
@@ -164,19 +147,27 @@ object AppUpdateManager {
 
     fun showUpdateDialog(context: Context, release: ReleaseInfo) {
         AlertDialog.Builder(context)
-            .setTitle("Pembaruan Tersedia: ${release.tagName}")
-            .setMessage("Versi baru telah dirilis di GitHub!\n\nCatatan Perubahan:\n${release.changelog}\n\nUnduh dan pasang pembaruan sekarang?")
-            .setPositiveButton("Perbarui Sekarang") { _, _ ->
+            .setTitle(context.getString(R.string.update_dialog_title, release.tagName))
+            .setMessage(context.getString(R.string.update_dialog_message, release.changelog))
+            .setPositiveButton(context.getString(R.string.update_dialog_btn_download)) { _, _ ->
                 downloadAndInstallApk(context, release.apkDownloadUrl, release.tagName)
             }
-            .setNegativeButton("Nanti", null)
+            .setNegativeButton(context.getString(R.string.update_dialog_btn_later), null)
             .show()
     }
 
     private fun downloadAndInstallApk(context: Context, downloadUrl: String, tagName: String) {
+        // Keamanan Anti-Tamper: Verifikasi bahwa URL unduhan resmi berasal dari github.com / githubusercontent
+        val uri = Uri.parse(downloadUrl)
+        val host = uri.host?.lowercase() ?: ""
+        if (!host.endsWith("github.com") && !host.endsWith("githubusercontent.com")) {
+            Toast.makeText(context, "Peringatan Keamanan: URL pembaruan tidak resmi!", Toast.LENGTH_LONG).show()
+            return
+        }
+
         val progressDialog = ProgressDialog(context).apply {
-            setTitle("Mengunduh Pembaruan")
-            setMessage("Sedang mengunduh versi $tagName dari GitHub...")
+            setTitle(context.getString(R.string.update_downloading_title))
+            setMessage(context.getString(R.string.update_downloading_message, tagName))
             setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
             max = 100
             setCancelable(false)
@@ -251,18 +242,23 @@ object AppUpdateManager {
             }
         }
 
-        val apkUri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.provider",
-            apkFile
-        )
+        try {
+            val apkUri: Uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                apkFile
+            )
 
-        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(apkUri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            context.startActivity(installIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Gagal meluncurkan PackageInstaller: ${e.message}")
+            Toast.makeText(context, "Gagal membuka installer APK: ${e.message}", Toast.LENGTH_LONG).show()
         }
-
-        context.startActivity(installIntent)
     }
 }

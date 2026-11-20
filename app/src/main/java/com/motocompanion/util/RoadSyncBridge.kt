@@ -3,6 +3,7 @@ package com.motocompanion.util
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -27,9 +28,56 @@ object RoadSyncBridge {
     private const val PREFS_NAME = "moto_roadsync_prefs"
     const val KEY_AUTO_START_BT = "auto_start_on_bluetooth"
     const val KEY_COMPANION_ACTIVE = "companion_service_active"
+    const val KEY_MUSIC_PLAYER_ENABLED = "key_music_player_bridge_enabled"
     const val ACTION_ROADSYNC_STATE_CHANGED = "com.motocompanion.ROADSYNC_STATE_CHANGED"
 
     var isRoadSyncActive: Boolean = false
+
+    fun isMusicPlayerEnabled(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_MUSIC_PLAYER_ENABLED, true)
+    }
+
+    fun setMusicPlayerEnabled(context: Context, enabled: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_MUSIC_PLAYER_ENABLED, enabled).apply()
+
+        val pm = context.packageManager
+        val state = if (enabled) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        } else {
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        }
+
+        val components = listOf(
+            ComponentName(context, MediaSessionService::class.java),
+            ComponentName(context, "com.spotify.music.libs.mediabrowserservice.SpotifyMediaBrowserService"),
+            ComponentName(context, "com.spotify.mediabrowserservice.SpotifyMediaBrowserService"),
+            ComponentName(context, "com.spotify.mediabrowserservice.mediabrowserservice.SpotifyMediaBrowserService")
+        )
+
+        for (comp in components) {
+            try {
+                pm.setComponentEnabledSetting(comp, state, PackageManager.DONT_KILL_APP)
+            } catch (e: Exception) {
+                Log.w(TAG, "Gagal mengubah status komponen ${comp.className}: ${e.message}")
+            }
+        }
+
+        if (!enabled) {
+            try {
+                val stopIntent = Intent(context, MediaSessionService::class.java).apply {
+                    action = MediaSessionService.ACTION_STOP_SERVICE
+                }
+                context.startService(stopIntent)
+                MediaSessionService.sharedMediaSession?.isActive = false
+            } catch (_: Exception) {}
+        } else {
+            if (isCompanionActive(context) || isRoadSyncActive || getConnectedDeviceName(context) != null) {
+                startMediaService(context)
+            }
+        }
+    }
 
     fun isTargetDeviceName(name: String?): Boolean {
         if (name == null) return false
@@ -75,6 +123,16 @@ object RoadSyncBridge {
         isRoadSyncActive = true
         setCompanionActive(context, true)
 
+        if (isMusicPlayerEnabled(context)) {
+            startMediaService(context)
+        } else {
+            Log.i(TAG, "Pemutar musik H-Sync dinonaktifkan (RoadSync memakai pemutar bawaan).")
+        }
+
+        context.sendBroadcast(Intent(ACTION_ROADSYNC_STATE_CHANGED))
+    }
+
+    fun startMediaService(context: Context) {
         val mediaServiceIntent = Intent(context, MediaSessionService::class.java).apply {
             action = MediaSessionService.ACTION_START_FOREGROUND
         }
@@ -87,8 +145,6 @@ object RoadSyncBridge {
         } catch (e: Exception) {
             Log.e(TAG, "Gagal memulai MediaSessionService: ${e.message}")
         }
-
-        context.sendBroadcast(Intent(ACTION_ROADSYNC_STATE_CHANGED))
     }
 
     /**

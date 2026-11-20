@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Identity -->
+    <!-- App Identity & Author -->
     <string name="app_name">H-Sync</string>
     <string name="service_announcer_name">Pengumum Panggilan WA &amp; Pesan Motor</string>
     <string name="title_dashboard">H-SYNC</string>
     <string name="subtitle_dashboard">Pendamping Cerdas Honda RoadSync</string>
+    <string name="app_author">Dibuat oleh @mrz92</string>
+    <string name="app_footer">H-Sync • Pendamping Cerdas Honda RoadSync • Dibuat oleh @mrz92</string>
+    <string name="official_source_desc">Sumber Resmi: github.com/rifqyzakaria/MotoCompanion</string>
+    <string name="badge_verified_author">🛡️ @mrz92 RESMI</string>
 
     <!-- Status Badges -->
     <string name="status_active">🟢 AKTIF</string>
@@ -30,6 +34,11 @@
 
     <!-- Music Control Section -->
     <string name="section_media_control">KONTROL PEMUTAR MUSIK (TFT &amp; STANG)</string>
+    <string name="switch_hsync_music_title">Gunakan Pemutar Musik H-Sync</string>
+    <string name="switch_hsync_music_desc_on">Aktif: RoadSync menggunakan H-Sync untuk kontrol BitChord &amp; pemutar kustom</string>
+    <string name="switch_hsync_music_desc_off">Nonaktif: RoadSync dapat memilih pemutar bawaan (Spotify asli, YT Music, VLC, dll.)</string>
+    <string name="toast_hsync_music_on">Pemutar musik H-Sync diaktifkan untuk Honda RoadSync</string>
+    <string name="toast_hsync_music_off">Pemutar musik H-Sync dinonaktifkan (RoadSync kini dapat memakai Spotify/YT Music/VLC)</string>
     <string name="label_selected_player">Pemutar Terpilih</string>
     <string name="btn_change">Ganti</string>
     <string name="no_music_playing">🎵 Belum ada lagu yang diputar</string>
@@ -92,14 +101,18 @@
     <string name="btn_configure">Atur</string>
     <string name="current_version_format">Versi Saat Ini: v%1$s</string>
     <string name="btn_check_update">Periksa Pembaruan GitHub</string>
-    <string name="toast_checking_update">Memeriksa rilis terbaru di GitHub...</string>
-    <string name="dialog_set_repo_title">Atur Repositori GitHub</string>
-    <string name="dialog_set_repo_message">Masukkan format \'username/nama-repo\' tempat Anda merilis file APK pembaruan:</string>
-    <string name="toast_repo_saved">Repositori disimpan: %1$s</string>
+    <string name="toast_checking_update">Memeriksa rilis terbaru dari sumber resmi GitHub (@mrz92)...</string>
+    <string name="update_dialog_title">Pembaruan Resmi: %1$s (@mrz92)</string>
+    <string name="update_dialog_message">Versi resmi terbaru dari @mrz92 telah tersedia di GitHub!\n\nCatatan Pembaruan:\n%1$s\n\nUnduh dan pasang pembaruan resmi sekarang?</string>
+    <string name="update_dialog_btn_download">Perbarui Sekarang</string>
+    <string name="update_dialog_btn_later">Nanti</string>
+    <string name="update_downloading_title">Mengunduh Pembaruan Resmi</string>
+    <string name="update_downloading_message">Mengunduh versi %1$s dari repositori resmi @mrz92...</string>
+    <string name="update_up_to_date">Aplikasi sudah versi resmi terbaru (%1$s) dari @mrz92</string>
 
-    <!-- Dialogs & Bike Guide -->
-    <string name="guide_title">🏍️ Hubungkan ke Honda RoadSync (Semua Motor)</string>
-    <string name="guide_message">Langkah menghubungkan agar tombol stang motor Honda Anda mengontrol musik:\n\n1. Pastikan Bluetooth ponsel terhubung ke motor Honda Anda (PCX, ADV, Forza, Hornet, Transalp, CB, dll.) &amp; Helm Intercom.\n\n2. Buka aplikasi resmi Honda RoadSync.\n\n3. Buka Pengaturan (Settings) ➔ Sumber Musik (Music Source).\n\n4. Pilih \'Spotify\' (H-Sync) sebagai sumber musik!\n\n5. Di H-Sync, pilih pemutar musik yang Anda inginkan (BitChord, YouTube Music, dll.).\n\n6. Selesai! Saat berkendara, tombol stang motor Honda akan langsung mengontrol lagu dan judul lagu tampil di layar TFT speedometer!</string>
+    <!-- Dialogs & Bike Guide (Symmetrical & Clean) -->
+    <string name="guide_title">🏍️ Panduan Koneksi Honda RoadSync</string>
+    <string name="guide_message">Panduan praktis menghubungkan H-Sync ke motor Honda (PCX, ADV, Forza, Hornet, CB, Transalp, Rebel, dll.):\n\n📌 Langkah 1: Koneksi Bluetooth\nPastikan Bluetooth HP terhubung ke motor Honda dan Intercom helm.\n\n📌 Langkah 2: Buka Honda RoadSync\nBuka aplikasi RoadSync di HP ➔ Masuk menu Pengaturan (Settings) ➔ Sumber Musik (Music Source).\n\n📌 Langkah 3: Pilih Sumber Musik\n• Jika ingin menggunakan H-Sync (BitChord/kustom): Aktifkan saklar pemutar musik H-Sync, lalu pilih \'Spotify\' (H-Sync) di RoadSync.\n• Jika ingin menggunakan pemutar bawaan: Matikan saklar pemutar musik H-Sync, lalu pilih Spotify resmi / YouTube Music / VLC langsung di RoadSync.\n\n📌 Langkah 4: Mulai Berkendara\nTombol stang (Play, Pause, Next, Prev) langsung mengontrol lagu dan info judul tampil rapi di layar TFT speedometer!</string>
     <string name="guide_btn_open">Buka RoadSync Sekarang</string>
     <string name="guide_btn_close">Tutup</string>
     <string name="roadsync_not_installed_title">Honda RoadSync Belum Terpasang</string>

@@ -16,7 +16,6 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -59,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         loadPreferences()
         updateThemeAndLanguageUi()
+        updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
 
         // Periksa pembaruan di latar belakang saat aplikasi dibuka
         AppUpdateManager.checkForUpdates(this, showUpToDateToast = false)
@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
         updateRoadSyncUi()
         updateGithubRepoUi()
         updateThemeAndLanguageUi()
+        updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
         trackUpdateHandler.post(trackUpdateRunnable)
 
         val filter = IntentFilter(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED)
@@ -140,6 +141,17 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
+        // Switch Pemutar Musik H-Sync untuk Honda RoadSync
+        binding.switchHsyncMusic.setOnCheckedChangeListener { _, isChecked ->
+            RoadSyncBridge.setMusicPlayerEnabled(this, isChecked)
+            updateMusicPlayerSwitchUi(isChecked)
+            Toast.makeText(
+                this,
+                if (isChecked) getString(R.string.toast_hsync_music_on) else getString(R.string.toast_hsync_music_off),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
         // Kontrol Cepat Pemutar Media Terpilih (Dashboard Utama)
         binding.btnMainPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
@@ -184,14 +196,10 @@ class MainActivity : AppCompatActivity() {
             showThemeDialog()
         }
 
-        // Pembaruan Aplikasi GitHub
+        // Pembaruan Aplikasi GitHub Resmi (@mrz92)
         binding.btnCheckUpdate.setOnClickListener {
             Toast.makeText(this, getString(R.string.toast_checking_update), Toast.LENGTH_SHORT).show()
             AppUpdateManager.checkForUpdates(this, showUpToDateToast = true)
-        }
-
-        binding.btnSetRepo.setOnClickListener {
-            showSetRepoDialog()
         }
 
         // Izin Notifikasi
@@ -255,6 +263,29 @@ class MainActivity : AppCompatActivity() {
             } else {
                 requestLocationPermission()
             }
+        }
+    }
+
+    private fun updateMusicPlayerSwitchUi(enabled: Boolean) {
+        binding.switchHsyncMusic.isChecked = enabled
+        if (enabled) {
+            binding.tvHsyncMusicDesc.text = getString(R.string.switch_hsync_music_desc_on)
+            binding.layoutMusicPlayerControls.alpha = 1.0f
+            binding.btnChangePlayer.isEnabled = true
+            binding.btnMainPrev.isEnabled = true
+            binding.btnMainPlayPause.isEnabled = true
+            binding.btnMainNext.isEnabled = true
+            binding.btnLaunchActivePlayer.isEnabled = true
+            binding.btnOpenBuiltinMusic.isEnabled = true
+        } else {
+            binding.tvHsyncMusicDesc.text = getString(R.string.switch_hsync_music_desc_off)
+            binding.layoutMusicPlayerControls.alpha = 0.45f
+            binding.btnChangePlayer.isEnabled = false
+            binding.btnMainPrev.isEnabled = false
+            binding.btnMainPlayPause.isEnabled = false
+            binding.btnMainNext.isEnabled = false
+            binding.btnLaunchActivePlayer.isEnabled = false
+            binding.btnOpenBuiltinMusic.isEnabled = false
         }
     }
 
@@ -330,33 +361,10 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showSetRepoDialog() {
-        val currentRepo = AppUpdateManager.getSavedRepo(this)
-        val input = EditText(this).apply {
-            setText(currentRepo)
-            hint = "username/repository"
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_set_repo_title)
-            .setMessage(R.string.dialog_set_repo_message)
-            .setView(input)
-            .setPositiveButton(R.string.btn_save) { _, _ ->
-                val newRepo = input.text.toString().trim()
-                if (newRepo.isNotBlank()) {
-                    AppUpdateManager.setSavedRepo(this, newRepo)
-                    updateGithubRepoUi()
-                    Toast.makeText(this, getString(R.string.toast_repo_saved, newRepo), Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(R.string.btn_cancel, null)
-            .show()
-    }
-
     private fun updateGithubRepoUi() {
         val version = BuildConfig.VERSION_NAME
         binding.tvCurrentVersion.text = getString(R.string.current_version_format, version)
-        binding.tvGithubRepo.text = "Repo: ${AppUpdateManager.getSavedRepo(this)}"
+        binding.tvGithubRepo.text = getString(R.string.official_source_desc)
     }
 
     private fun showRoadSyncGuideDialog() {

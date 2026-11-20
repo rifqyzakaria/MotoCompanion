@@ -1,44 +1,47 @@
 # 🏍️ H-Sync (Pendamping Cerdas Honda RoadSync)
 
-**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) Android yang dirancang khusus untuk bekerja berdampingan dengan **Honda RoadSync (HSVCS)** di seluruh lini motor Honda yang mendukung konektivitas RoadSync (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok atau kendala koneksi Bluetooth.
+**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) cerdas dan minimalis karya **@mrz92** yang dirancang khusus untuk mendampingi **Honda RoadSync (HSVCS)** di seluruh lini motor Honda (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok koneksi Bluetooth.
+
+Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **@mrz92** dengan sistem pembaruan otomatis yang terkunci ke repositori resmi GitHub `rifqyzakaria/MotoCompanion`.
 
 ---
 
 ## 🚀 Fitur Utama
 
-1. **Pemilih & Kontrol Pemutar Media Fleksibel (`MediaControlDispatcher` & `PlayerSelectorActivity`)**
-   - Mendeteksi secara otomatis seluruh pemutar audio & video yang terinstal di HP Anda (baik dari **Google Play Store** maupun dari **luar Play Store / sideload APK pihak ketiga / buatan sendiri** seperti VLC, Poweramp, MX Player, Spotify, YouTube Music, YouTube ReVanced, Musicolet, dll.).
-   - Dilengkapi saklar _"Tampilkan seluruh aplikasi terinstal"_ untuk memastikan aplikasi kustom apapun yang Anda buat dapat dipilih.
-   - **Multi-Tier Control Engine**:
-     - _Tier 1:_ Direct `MediaSessionManager` & `MediaController` TransportControls (kontrol resmi Android modern untuk Spotify, YouTube Music, VLC, dll.).
-     - _Tier 2:_ Explicit Component Targeting untuk pemutar background/dormant (lolos restriksi Android 8.0+).
-     - _Tier 3:_ Auto-Wake and Launch jika pemutar belum dibuka.
-     - _Tier 4:_ Global `AudioManager` Media Key Event & Ordered Broadcast.
-   - **Tombol navigasi stang motor Honda** dan **tombol fisik intercom helm** (Play, Pause, Next, Prev) langsung diteruskan secara otomatis ke aplikasi pemutar yang sedang Anda pilih!
-   - **Tampilan Info Lagu & Kontrol Langsung di Dashboard & Layar HUD**: Menampilkan judul lagu yang sedang berputar di aplikasi pihak ketiga secara _live_ beserta tombol kontrol cepat (⏮ Prev, ⏯ Play/Pause, Next ⏭).
+1. **Sakelar Pemutar Musik H-Sync (H-Sync Music Bridge Toggle)**
+   - **Aktif (ON)**: H-Sync bertindak sebagai pemutar Spotify virtual yang meneruskan lagu dan perintah stang dari aplikasi pihak ketiga luar (seperti **BitChord**, pemutar kustom, dll.) ke layar TFT speedometer motor Honda.
+   - **Nonaktif (OFF)**: Honda RoadSync dapat langsung mendeteksi dan mengontrol pemutar musik resmi ter-whitelist (seperti **Spotify resmi, YouTube Music, Samsung Music, VLC**, dll.) tanpa bentrok, sementara fitur pengumuman panggilan WhatsApp dan stabilizer GPS H-Sync tetap berjalan di latar belakang!
 
-2. **Deteksi & Pembaca Panggilan WhatsApp Otomatis (`NotificationAnnouncerService`)**
+2. **Solusi "Kesalahan Aplikasi Musik" di Layar TFT / HP**
+   - Layar peringatan _"Kesalahan Aplikasi Musik: 1. Pastikan terinstal, 2. Masuk akun, 3. Putar lagu untuk memulai koneksi"_ adalah mekanisme verifikasi RoadSync yang membutuhkan **sesi media aktif**.
+   - Cukup putar lagu minimal 1 kali di aplikasi pemutar Anda (BitChord / Spotify) sebelum membuka menu Musik di RoadSync / stang motor agar RoadSync dapat membaca metadata track secara sempurna.
+
+3. **Pemilih Pemutar Media Fleksibel (`MediaControlDispatcher` & `PlayerSelectorActivity`)**
+   - Mendeteksi secara otomatis seluruh pemutar audio & video yang terinstal di HP Anda (baik dari **Google Play Store** maupun dari **sideload APK luar**).
+   - Tombol navigasi stang motor Honda dan intercom helm (Play, Pause, Next, Prev) langsung diteruskan ke pemutar yang dipilih.
+
+4. **Deteksi & Pembaca Panggilan WhatsApp Otomatis (`NotificationAnnouncerService`)**
    - Mendeteksi panggilan suara/video WhatsApp masuk secara _real-time_.
    - Menerapkan _Audio Ducking_ (volume musik otomatis mengecil saat panggilan masuk).
-   - Membacakan nama kontak penelepon langsung ke _intercom_ helm Bluetooth Anda: _"Telepon WhatsApp masuk dari [Nama Kontak]"_.
+   - Membacakan nama kontak penelepon langsung ke intercom helm Bluetooth.
 
-3. **Mesin TTS Bahasa Indonesia Alami (`SlangNormalizer` + `TtsManager`)**
-   - Mengunci bahasa ke Bahasa Indonesia murni.
-   - Dilengkapi pembersih teks otomatis: menghilangkan emoji, tautan, dan menerjemahkan singkatan chat (_otw_, _dmn_, _bwt_, _yg_, _kbrin_, dll.) agar intonasi terdengar natural saat berkendara.
+5. **Speedometer & Kompas GPS Stabil Anti-Pusing (`GpsStabilizer` + `HudActivity`)**
+   - Mengunci arah kompas saat motor berhenti `< 3.5 km/jam` agar arah peta tidak berputar liar akibat interferensi magnet motor.
+   - Menyaring pergerakan arah dengan algoritma _Circular Exponential Moving Average_.
 
-4. **Speedometer & Kompas GPS Stabil Anti-Pusing (`GpsStabilizer` + `HudActivity`)**
-   - **Tampilan HUD Stang**: Layar mode malam (OLED Dark Mode) kontras tinggi dengan angka kecepatan ekstra besar.
-   - **Tombol Kontrol Media Terintegrasi**: Pengendara dapat mengganti lagu atau jeda langsung dari layar HUD.
-   - **Algoritma Filter Arah**:
-     - Saat kecepatan `< 3.5 km/jam` (berhenti di lampu merah): Arah kompas otomatis dikunci (tidak berputar-putar akibat gangguan medan magnet kelistrikan motor).
-     - Saat bergerak: Arah dikunci ke pergerakan vektor GPS dengan penghalusan _Circular Exponential Moving Average_.
+6. **Pengaturan Bahasa & Tampilan Dinamis (`LocaleThemeManager`)**
+   - **Pilihan Bahasa**: Bahasa Indonesia & English. Seluruh teks UI, dialog pembaruan, dan suara pengumuman otomatis berganti.
+   - **Pilihan Mode Tampilan**: Otomatis (Ikuti Sistem HP), Mode Gelap (Dark Mode), atau Mode Terang (Light Mode).
 
-5. **Pengaturan Bahasa & Tampilan Dinamis (`LocaleThemeManager`)**
-   - **Dukungan Dua Bahasa**: Pilihan instan antara **Bahasa Indonesia** dan **English**, atau otomatis mengikuti bahasa sistem HP. Seluruh antarmuka, dialog, panduan, dan suara pengumuman TTS otomatis berganti bahasa.
-   - **Pilihan Mode Tampilan Fleksibel**:
-     - **Otomatis (Ikuti Sistem / Device)**: Menyesuaikan secara otomatis dengan tema perangkat Anda.
-     - **Mode Gelap (Dark Mode)**: Tampilan OLED kontras tinggi yang ramah mata dan hemat daya.
-     - **Mode Terang (Light Mode)**: Tampilan bersih dengan visibilitas optimal di bawah terik sinar matahari siang hari.
+7. **Auto-Start & Auto-Stop Cerdas**
+   - Otomatis aktif saat motor terhubung ke Bluetooth dan mati bersih saat kontak motor mati.
+
+---
+
+## 👨‍💻 Pengembang Resmi
+
+Dibuat & Dikelola secara resmi oleh: **[@mrz92](https://github.com/rifqyzakaria)**  
+Repositori Resmi: [rifqyzakaria/MotoCompanion](https://github.com/rifqyzakaria/MotoCompanion)
 
 ---
 

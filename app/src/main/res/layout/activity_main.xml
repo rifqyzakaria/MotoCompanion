@@ -59,6 +59,15 @@
                     android:text="@string/subtitle_dashboard"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/app_author"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <!-- Status Badge Header -->
@@ -98,7 +107,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_rounded_card"
             android:orientation="vertical"
             android:padding="16dp">
@@ -216,11 +225,12 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_rounded_card"
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Switch: Gunakan Pemutar Musik H-Sync -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -236,144 +246,197 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_selected_player"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:text="@string/switch_hsync_music_title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/tvActivePlayerName"
+                        android:id="@+id/tvHsyncMusicDesc"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="BitChord"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:text="@string/switch_hsync_music_desc_on"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/btnChangePlayer"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="@string/btn_change"
-                    android:textColor="@color/accent_cyan"
-                    android:textSize="12sp"
-                    app:cornerRadius="18dp"
-                    app:strokeColor="@color/border_color" />
-            </LinearLayout>
-
-            <!-- Box Judul Lagu Yang Sedang Berjalan -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_inner_box"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="12dp"
-                android:paddingBottom="10dp">
-
-                <TextView
-                    android:id="@+id/tvActiveTrackInfo"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="marquee"
-                    android:singleLine="true"
-                    android:text="@string/no_music_playing"
-                    android:textColor="@color/accent_cyan"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tvActiveTrackState"
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchHsyncMusic"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_pill"
-                    android:paddingStart="8dp"
-                    android:paddingTop="2dp"
-                    android:paddingEnd="8dp"
-                    android:paddingBottom="2dp"
-                    android:text="@string/state_paused"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="10sp" />
+                    android:checked="true" />
             </LinearLayout>
 
-            <!-- Quick Tactile Rider Controls -->
+            <!-- Container Kontrol Musik (Dapat Diaktifkan / Dinonaktifkan) -->
             <LinearLayout
+                android:id="@+id/layoutMusicPlayerControls"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <Button
-                    android:id="@+id/btnMainPrev"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:text="@string/btn_prev"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:cornerRadius="10dp"
-                    app:strokeColor="@color/border_color" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@color/border_color" />
 
-                <Button
-                    android:id="@+id/btnMainPlayPause"
-                    android:layout_width="0dp"
-                    android:layout_height="46dp"
-                    android:layout_weight="1.3"
-                    android:backgroundTint="@color/accent_cyan"
-                    android:text="@string/btn_play"
-                    android:textColor="@color/btn_text_on_cyan"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="10dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/btnMainNext"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:text="@string/btn_next"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:cornerRadius="10dp"
-                    app:strokeColor="@color/border_color" />
-            </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_selected_player"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
 
-                <Button
-                    android:id="@+id/btnLaunchActivePlayer"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:text="@string/btn_launch_player"
-                    android:textColor="@color/accent_green"
-                    android:textSize="12sp" />
+                        <TextView
+                            android:id="@+id/tvActivePlayerName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="BitChord"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-                <Button
-                    android:id="@+id/btnOpenBuiltinMusic"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:text="@string/btn_offline_music"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    <Button
+                        android:id="@+id/btnChangePlayer"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="@string/btn_change"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="@color/border_color" />
+                </LinearLayout>
+
+                <!-- Box Judul Lagu Yang Sedang Berjalan -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_inner_box"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:id="@+id/tvActiveTrackInfo"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="marquee"
+                        android:singleLine="true"
+                        android:text="@string/no_music_playing"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvActiveTrackState"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_pill"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="@string/state_paused"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Quick Tactile Rider Controls -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnMainPrev"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_prev"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        app:cornerRadius="10dp"
+                        app:strokeColor="@color/border_color" />
+
+                    <Button
+                        android:id="@+id/btnMainPlayPause"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_weight="1.3"
+                        android:backgroundTint="@color/accent_cyan"
+                        android:text="@string/btn_play"
+                        android:textColor="@color/btn_text_on_cyan"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="10dp" />
+
+                    <Button
+                        android:id="@+id/btnMainNext"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_next"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        app:cornerRadius="10dp"
+                        app:strokeColor="@color/border_color" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnLaunchActivePlayer"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_launch_player"
+                        android:textColor="@color/accent_green"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/btnOpenBuiltinMusic"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_offline_music"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
 
@@ -391,7 +454,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_rounded_card"
             android:orientation="vertical"
             android:padding="16dp">
@@ -497,8 +560,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/toggle_gps_stabilizer"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -549,7 +611,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 4. KARTU TAMPILAN & PENGATURAN BAHASA (NEW) -->
+        <!-- 4. KARTU TAMPILAN & PENGATURAN BAHASA -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -563,7 +625,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_rounded_card"
             android:orientation="vertical"
             android:padding="16dp">
@@ -667,7 +729,7 @@
 
         </LinearLayout>
 
-        <!-- 5. KARTU IZIN SISTEM & PEMBARUAN GITHUB -->
+        <!-- 5. KARTU IZIN SISTEM & PEMBARUAN GITHUB RESMI -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -818,7 +880,7 @@
                 android:layout_marginBottom="10dp"
                 android:background="@color/border_color" />
 
-            <!-- Baris Update GitHub -->
+            <!-- Baris Sumber & Keamanan Resmi Terkunci -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -835,7 +897,7 @@
                         android:id="@+id/tvCurrentVersion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Versi Saat Ini: v1.5.0"
+                        android:text="Versi Saat Ini: v1.5.1"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -844,21 +906,24 @@
                         android:id="@+id/tvGithubRepo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:ellipsize="middle"
-                        android:singleLine="true"
-                        android:text="Repo: rifqyzakaria/MotoCompanion"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/official_source_desc"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/btnSetRepo"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="@string/btn_change"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill"
+                    android:paddingStart="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="3dp"
+                    android:text="@string/badge_verified_author"
+                    android:textColor="@color/accent_green"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <Button
@@ -866,7 +931,7 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="42dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/btn_check_update"
                 android:textColor="@color/accent_cyan"
                 android:textSize="12sp"
@@ -886,6 +951,16 @@
             android:textSize="14sp"
             android:textStyle="bold"
             app:cornerRadius="12dp" />
+
+        <!-- Symmetrical App Footer -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/app_footer"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
 
     </LinearLayout>
 </ScrollView>

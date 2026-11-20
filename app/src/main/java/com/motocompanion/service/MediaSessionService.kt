@@ -25,7 +25,7 @@ import com.motocompanion.ui.MusicActivity
 import com.motocompanion.util.MediaControlDispatcher
 import android.view.KeyEvent
 
-class MediaSessionService : MediaBrowserServiceCompat() {
+open class MediaSessionService : MediaBrowserServiceCompat() {
 
     private val tag = "MotoMediaSession"
 

@@ -34,14 +34,33 @@ object AppUpdateManager {
         val apkDownloadUrl: String
     )
 
+    fun cleanRepoPath(raw: String): String {
+        var cleaned = raw.trim()
+        if (cleaned.startsWith("https://", ignoreCase = true)) {
+            cleaned = cleaned.substring(8)
+        } else if (cleaned.startsWith("http://", ignoreCase = true)) {
+            cleaned = cleaned.substring(7)
+        }
+        if (cleaned.startsWith("github.com/", ignoreCase = true)) {
+            cleaned = cleaned.substring(11)
+        }
+        cleaned = cleaned.trim('/')
+        val parts = cleaned.split("/").filter { it.isNotBlank() }
+        if (parts.size >= 2) {
+            return "${parts[0]}/${parts[1]}"
+        }
+        return cleaned.ifBlank { DEFAULT_REPO }
+    }
+
     fun getSavedRepo(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_GITHUB_REPO, DEFAULT_REPO) ?: DEFAULT_REPO
+        val saved = prefs.getString(KEY_GITHUB_REPO, DEFAULT_REPO) ?: DEFAULT_REPO
+        return cleanRepoPath(saved)
     }
 
     fun setSavedRepo(context: Context, repoPath: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_GITHUB_REPO, repoPath.trim()).apply()
+        prefs.edit().putString(KEY_GITHUB_REPO, cleanRepoPath(repoPath)).apply()
     }
 
     /**
@@ -110,7 +129,7 @@ object AppUpdateManager {
                         if (showUpToDateToast) {
                             Toast.makeText(
                                 context,
-                                "Repositori GitHub '$repoPath' atau rilis tidak ditemukan.",
+                                "Rilis '$repoPath' tidak ditemukan (404). Pastikan repositori GitHub sudah diubah menjadi PUBLIC di Settings.",
                                 Toast.LENGTH_LONG
                             ).show()
                         }

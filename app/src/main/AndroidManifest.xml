@@ -177,6 +177,17 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name="com.spotify.mediabrowserservice.mediabrowserservice.SpotifyMediaBrowserService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="androidx.media.MediaBrowserServiceCompat" />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </service>
+
         <!-- GPS Stabilizer Foreground Service -->
         <service
             android:name=".service.GpsTrackingService"

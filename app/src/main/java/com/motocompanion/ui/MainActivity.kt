@@ -60,6 +60,9 @@ class MainActivity : AppCompatActivity() {
 
         // Periksa pembaruan di latar belakang saat aplikasi dibuka
         AppUpdateManager.checkForUpdates(this, showUpToDateToast = false)
+
+        // Otomatis jalankan MediaSessionService agar sesi musik & RoadSync langsung tersambung
+        startMediaSessionService()
     }
 
     override fun onResume() {
@@ -454,6 +457,19 @@ class MainActivity : AppCompatActivity() {
             } else {
                 startService(serviceIntent)
             }
+        }
+    }
+
+    private fun startMediaSessionService() {
+        try {
+            val serviceIntent = Intent(this, MediaSessionService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Gagal start MediaSessionService: ${e.message}")
         }
     }
 }

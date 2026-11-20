@@ -218,15 +218,18 @@ object MediaControlDispatcher {
         }
 
         // Kasus 2: Aplikasi Pihak Ketiga (BitChord, Spotify, YouTube Music, VLC, dll.)
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        val isHardwareAudioActive = audioManager?.isMusicActive == true
+
         val controller = getActiveMediaController(context, selectedPkg) ?: getActiveMediaController(context, null)
         if (controller != null) {
             val metadata = controller.metadata
             val state = controller.playbackState
-            val isPlaying = state?.state == PlaybackState.STATE_PLAYING
+            val isPlaying = (state?.state == PlaybackState.STATE_PLAYING) || isHardwareAudioActive
 
             val title = metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
-                ?: "Pemutar Aktif"
+                ?: if (isHardwareAudioActive) "Memutar $selectedName" else "Pemutar Aktif"
             val artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
                 ?: metadata?.getString(MediaMetadata.METADATA_KEY_AUTHOR)
@@ -247,9 +250,9 @@ object MediaControlDispatcher {
         }
 
         return TrackInfo(
-            title = "Putar $selectedName",
+            title = if (isHardwareAudioActive) "Memutar $selectedName" else "Putar $selectedName",
             artist = "MotoCompanion PCX",
-            isPlaying = false,
+            isPlaying = isHardwareAudioActive,
             appName = selectedName,
             packageName = selectedPkg,
             durationMs = 180000L,

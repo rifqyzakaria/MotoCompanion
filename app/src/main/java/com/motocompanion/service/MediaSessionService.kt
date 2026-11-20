@@ -6,10 +6,12 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -52,6 +54,13 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
         val playlist = mutableListOf<Song>()
         var currentIndex = 0
+
+        /**
+         * Singleton MediaSessionCompat agar semua alias service (SpotifyMediaBrowserService & MediaSessionService)
+         * berbagi instance session token yang sama persis untuk Honda RoadSync dan meter TFT PCX.
+         */
+        @Volatile
+        var sharedMediaSession: MediaSessionCompat? = null
     }
 
     private lateinit var mediaSession: MediaSessionCompat
@@ -93,10 +102,18 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
                 PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
                 PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
                 PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
-                PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
+                PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH or
+                PlaybackStateCompat.ACTION_SEEK_TO
     }
 
     private fun initMediaSession() {
+        if (sharedMediaSession != null) {
+            mediaSession = sharedMediaSession!!
+            sessionToken = mediaSession.sessionToken
+            Log.i(tag, "Menggunakan sharedMediaSession yang sudah ada.")
+            return
+        }
+
         val mediaButtonReceiverIntent = Intent(Intent.ACTION_MEDIA_BUTTON, null, this, com.motocompanion.receiver.MediaButtonReceiver::class.java)
         val mediaButtonPendingIntent = PendingIntent.getBroadcast(
             this, 0, mediaButtonReceiverIntent, PendingIntent.FLAG_IMMUTABLE
@@ -121,12 +138,12 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
                 }
 
                 override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
-                    Log.i(tag, "onPrepareFromMediaId diterima dari RoadSync / PCX: $mediaId")
+                    Log.i(tag, "onPrepareFromMediaId: $mediaId")
                     onPlayFromMediaId(mediaId, extras)
                 }
 
                 override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
-                    Log.i(tag, "onPrepareFromSearch diterima dari RoadSync / PCX: $query")
+                    Log.i(tag, "onPrepareFromSearch: $query")
                     onPlayFromSearch(query, extras)
                 }
 
@@ -211,6 +228,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             isActive = true
         }
 
+        sharedMediaSession = mediaSession
         sessionToken = mediaSession.sessionToken
 
         // SEGERA INISIALISASI PlaybackState dan Metadata default agar RoadSync & TFT PCX tidak menganggap Spotify mati / belum login
@@ -219,15 +237,16 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
         val initialTitle = if (trackInfo != null && trackInfo.isPlaying) trackInfo.title else "Putar $selectedName"
         val initialArtist = if (trackInfo != null && trackInfo.isPlaying) trackInfo.artist else "MotoCompanion PCX"
-        val initialState = if (trackInfo != null && trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+        val initialState = if (trackInfo != null && trackInfo.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PLAYING
 
         val playbackState = PlaybackStateCompat.Builder()
             .setActions(getSupportedActions())
-            .setState(initialState, trackInfo?.positionMs ?: 0L, if (initialState == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f)
+            .setState(initialState, trackInfo?.positionMs ?: 0L, 1.0f, SystemClock.elapsedRealtime())
             .build()
         mediaSession.setPlaybackState(playbackState)
 
         val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ITEM_STREAM_ID)
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, initialTitle)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, initialArtist)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, selectedName)
@@ -240,6 +259,9 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         lastSyncedTitle = initialTitle
         lastSyncedArtist = initialArtist
         lastSyncedState = initialState
+
+        updateForegroundNotification(initialTitle, initialArtist, true)
+        broadcastSpotifyState(initialTitle, initialArtist, selectedName, true, trackInfo?.durationMs ?: 180000L, trackInfo?.positionMs ?: 0L)
     }
 
     fun loadLocalSongs() {
@@ -310,7 +332,8 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             isPlaying = true
             updatePlaybackState(PlaybackStateCompat.STATE_PLAYING)
             updateMetadata(song)
-            startForeground(1001, createNotification(song, true))
+            updateForegroundNotification(song.title, song.artist, true)
+            broadcastSpotifyState(song.title, song.artist, "MotoCompanion Musik", true, song.durationMs, 0L)
             sendBroadcast(Intent(BROADCAST_TRACK_CHANGED))
         } catch (e: Exception) {
             Log.e(tag, "Eror saat memutar lagu: ${e.message}")
@@ -326,7 +349,8 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         isPlaying = false
         updatePlaybackState(PlaybackStateCompat.STATE_PAUSED)
         currentSong?.let {
-            startForeground(1001, createNotification(it, false))
+            updateForegroundNotification(it.title, it.artist, false)
+            broadcastSpotifyState(it.title, it.artist, "MotoCompanion Musik", false, it.durationMs, mediaPlayer?.currentPosition?.toLong() ?: 0L)
         }
         sendBroadcast(Intent(BROADCAST_TRACK_CHANGED))
     }
@@ -347,14 +371,16 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         mediaPlayer = null
         isPlaying = false
         updatePlaybackState(PlaybackStateCompat.STATE_STOPPED)
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        currentSong?.let {
+            broadcastSpotifyState(it.title, it.artist, "MotoCompanion Musik", false, it.durationMs, 0L)
+        }
         sendBroadcast(Intent(BROADCAST_TRACK_CHANGED))
     }
 
     private fun updatePlaybackState(state: Int) {
         val playbackState = PlaybackStateCompat.Builder()
             .setActions(getSupportedActions())
-            .setState(state, mediaPlayer?.currentPosition?.toLong() ?: 0L, if (state == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f)
+            .setState(state, mediaPlayer?.currentPosition?.toLong() ?: 0L, if (state == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f, SystemClock.elapsedRealtime())
             .build()
 
         mediaSession.setPlaybackState(playbackState)
@@ -362,6 +388,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
     private fun updateMetadata(song: Song) {
         val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, song.id.toString())
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "MotoCompanion Musik")
@@ -373,51 +400,94 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         mediaSession.setMetadata(metadata)
     }
 
-    private fun createNotification(song: Song, isPlaying: Boolean): Notification {
-        val openIntent = Intent(this, MusicActivity::class.java)
-        val pendingOpen = PendingIntent.getActivity(this, 0, openIntent, PendingIntent.FLAG_IMMUTABLE)
+    /**
+     * Memperbarui notifikasi foreground resmi bergaya MediaStyle agar Android & Honda RoadSync
+     * mendeteksi bahwa pemutar musik sedang aktif dan tidak menghentikannya saat berkendara.
+     */
+    fun updateForegroundNotification(title: String, artist: String, isPlaying: Boolean) {
+        try {
+            val openIntent = Intent(this, MainActivity::class.java)
+            val pendingOpen = PendingIntent.getActivity(this, 0, openIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        val playPauseAction = if (isPlaying) {
-            NotificationCompat.Action(
-                android.R.drawable.ic_media_pause,
-                "Pause",
-                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
+            val playPauseAction = if (isPlaying) {
+                NotificationCompat.Action(
+                    android.R.drawable.ic_media_pause,
+                    "Pause",
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
+                )
+            } else {
+                NotificationCompat.Action(
+                    android.R.drawable.ic_media_play,
+                    "Play",
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
+                )
+            }
+
+            val nextAction = NotificationCompat.Action(
+                android.R.drawable.ic_media_next,
+                "Next",
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
             )
-        } else {
-            NotificationCompat.Action(
-                android.R.drawable.ic_media_play,
-                "Play",
-                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
+
+            val prevAction = NotificationCompat.Action(
+                android.R.drawable.ic_media_previous,
+                "Previous",
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
             )
+
+            val notification = NotificationCompat.Builder(this, App.CHANNEL_MEDIA_SERVICE)
+                .setContentTitle(title)
+                .setContentText(artist)
+                .setSmallIcon(R.drawable.ic_bike)
+                .setContentIntent(pendingOpen)
+                .addAction(prevAction)
+                .addAction(playPauseAction)
+                .addAction(nextAction)
+                .setStyle(
+                    androidx.media.app.NotificationCompat.MediaStyle()
+                        .setMediaSession(mediaSession.sessionToken)
+                        .setShowActionsInCompactView(0, 1, 2)
+                )
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setOngoing(isPlaying)
+                .build()
+
+            startForeground(1001, notification)
+        } catch (e: Exception) {
+            Log.e(tag, "Gagal update foreground notification: ${e.message}")
         }
+    }
 
-        val nextAction = NotificationCompat.Action(
-            android.R.drawable.ic_media_next,
-            "Next",
-            MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
-        )
+    /**
+     * Mengirimkan Broadcast Resmi Spotify (com.spotify.music.playbackstatechanged & metadatachanged)
+     * yang dimonitor oleh aplikasi dashboard seperti Honda RoadSync (Drivemode).
+     */
+    fun broadcastSpotifyState(title: String, artist: String, album: String, isPlaying: Boolean, durationMs: Long, positionMs: Long) {
+        try {
+            val stateIntent = Intent("com.spotify.music.playbackstatechanged").apply {
+                putExtra("playing", isPlaying)
+                putExtra("playbackPosition", positionMs.toInt())
+                putExtra("timeSent", System.currentTimeMillis())
+            }
+            sendBroadcast(stateIntent)
 
-        val prevAction = NotificationCompat.Action(
-            android.R.drawable.ic_media_previous,
-            "Previous",
-            MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
-        )
+            val metaIntent = Intent("com.spotify.music.metadatachanged").apply {
+                putExtra("id", "spotify:track:motocompanion")
+                putExtra("artist", artist)
+                putExtra("album", album)
+                putExtra("track", title)
+                putExtra("length", (durationMs / 1000).toInt())
+                putExtra("timeSent", System.currentTimeMillis())
+            }
+            sendBroadcast(metaIntent)
 
-        return NotificationCompat.Builder(this, App.CHANNEL_MEDIA_SERVICE)
-            .setContentTitle(song.title)
-            .setContentText(song.artist)
-            .setSmallIcon(android.R.drawable.ic_media_play)
-            .setContentIntent(pendingOpen)
-            .addAction(prevAction)
-            .addAction(playPauseAction)
-            .addAction(nextAction)
-            .setStyle(
-                androidx.media.app.NotificationCompat.MediaStyle()
-                    .setMediaSession(mediaSession.sessionToken)
-                    .setShowActionsInCompactView(0, 1, 2)
-            )
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .build()
+            val queueIntent = Intent("com.spotify.music.queuechanged").apply {
+                putExtra("timeSent", System.currentTimeMillis())
+            }
+            sendBroadcast(queueIntent)
+        } catch (e: Exception) {
+            Log.e(tag, "Gagal broadcast Spotify intents: ${e.message}")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -530,6 +600,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         val position = trackInfo?.positionMs ?: 0L
 
         val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ITEM_STREAM_ID)
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, trackInfo?.appName ?: selectedName)
@@ -541,13 +612,16 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
         val playbackState = PlaybackStateCompat.Builder()
             .setActions(getSupportedActions())
-            .setState(PlaybackStateCompat.STATE_PLAYING, position, 1.0f)
+            .setState(PlaybackStateCompat.STATE_PLAYING, position, 1.0f, SystemClock.elapsedRealtime())
             .build()
         mediaSession.setPlaybackState(playbackState)
 
         lastSyncedTitle = title
         lastSyncedArtist = artist
         lastSyncedState = PlaybackStateCompat.STATE_PLAYING
+
+        updateForegroundNotification(title, artist, true)
+        broadcastSpotifyState(title, artist, selectedName, true, duration, position)
     }
 
     fun forcePausedState() {
@@ -560,6 +634,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         val position = trackInfo?.positionMs ?: 0L
 
         val metadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ITEM_STREAM_ID)
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, trackInfo?.appName ?: selectedName)
@@ -571,13 +646,16 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
 
         val playbackState = PlaybackStateCompat.Builder()
             .setActions(getSupportedActions())
-            .setState(PlaybackStateCompat.STATE_PAUSED, position, 0.0f)
+            .setState(PlaybackStateCompat.STATE_PAUSED, position, 0.0f, SystemClock.elapsedRealtime())
             .build()
         mediaSession.setPlaybackState(playbackState)
 
         lastSyncedTitle = title
         lastSyncedArtist = artist
         lastSyncedState = PlaybackStateCompat.STATE_PAUSED
+
+        updateForegroundNotification(title, artist, false)
+        broadcastSpotifyState(title, artist, selectedName, false, duration, position)
     }
 
     fun syncExternalPlayer() {
@@ -595,6 +673,7 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             lastSyncedTitle = title
             lastSyncedArtist = artist
             val metadata = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ITEM_STREAM_ID)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, trackInfo.appName.ifBlank { selectedName })
@@ -611,11 +690,15 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             lastSyncedState = targetState
             val playbackState = PlaybackStateCompat.Builder()
                 .setActions(getSupportedActions())
-                .setState(targetState, trackInfo.positionMs, if (targetState == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f)
+                .setState(targetState, trackInfo.positionMs, if (targetState == PlaybackStateCompat.STATE_PLAYING) 1.0f else 0.0f, SystemClock.elapsedRealtime())
                 .build()
             mediaSession.setPlaybackState(playbackState)
             Log.d(tag, "Synced state ke RoadSync & TFT PCX: $targetState")
         }
+
+        val isNowPlaying = (targetState == PlaybackStateCompat.STATE_PLAYING)
+        updateForegroundNotification(title, artist, isNowPlaying)
+        broadcastSpotifyState(title, artist, trackInfo.appName.ifBlank { selectedName }, isNowPlaying, duration, trackInfo.positionMs)
     }
 
     fun updateExternalPlayerMetadata() {
@@ -669,6 +752,5 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
         super.onDestroy()
         syncHandler.removeCallbacksAndMessages(null)
         mediaPlayer?.release()
-        mediaSession.release()
     }
 }

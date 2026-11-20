@@ -58,21 +58,24 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MotoCompanion-v1.3.1-APK
+          name: MotoCompanion-v1.3.2-APK
           path: release_assets/MotoCompanion.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.3.1' }}
-          name: "MotoCompanion v1.3.1 (Fixed PCX TFT Meter & RoadSync Playback Sync)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.3.2' }}
+          name: "MotoCompanion v1.3.2 (Definitive PCX TFT Meter & RoadSync Fix)"
           body: |
-            ### 🏍️ MotoCompanion v1.3.1 (Perbaikan Layar TFT Honda PCX & Sinkronisasi RoadSync)
+            ### 🏍️ MotoCompanion v1.3.2 (Solusi Tuntas Layar TFT Honda PCX & RoadSync)
 
-            Pembaruan khusus mengatasi tampilan 'Kesalahan Aplikasi Musik' pada dashboard TFT speedometer Honda PCX:
-            - 📟 **Mengatasi 'Kesalahan Aplikasi Musik' di Layar TFT PCX**: Menginisialisasi PlaybackState dan MediaMetadata secara instan saat RoadSync terhubung, sehingga TFT speedometer tidak lagi menampilkan peringatan seru (!) dan kesalahan aplikasi musik.
-            - 🎵 **Sinkronisasi Real-Time Judul & Artis BitChord**: Menambahkan continuous sync loop yang menyalin judul lagu dan nama penyanyi yang sedang aktif diputar di BitChord langsung ke MediaSession RoadSync, sehingga nama lagu langsung tampil di speedometer PCX.
+            Pembaruan tuntas mengatasi pesan 'Kesalahan Aplikasi Musik' pada dashboard TFT speedometer Honda PCX:
+            - 🔄 **Singleton MediaSession Token**: Semua alias service target RoadSync (`com.spotify.music.libs.mediabrowserservice`, `com.spotify.mediabrowserservice`, `com.spotify.mediabrowserservice.mediabrowserservice`) kini berbagi satu MediaSession yang sama.
+            - 📡 **Siaran Broadcast Resmi Spotify**: Mengirimkan broadcast `com.spotify.music.playbackstatechanged` & `metadatachanged` yang dimonitor oleh Honda RoadSync (Drivemode).
+            - 🛡️ **Hardware Audio Detection**: Menggunakan pendeteksi audio perangkat keras (`isMusicActive`) agar status musik tidak pernah salah terdeteksi mati saat BitChord memutar lagu.
+            - 🔔 **MediaStyle Foreground Notification**: Menjaga notifikasi kontrol musik aktif di status bar sehingga RoadSync tidak memutus koneksi.
+            - 🔑 **Tanda Tangan Kunci Permanen**: Sudah ditandatangani menggunakan keystore permanen yang tersimpan di repositori untuk update mulus seterusnya.
             - ⚡ **Respon Cepat Tombol Stang PCX**: Menangani callback `onPrepare`, `onPrepareFromMediaId`, dan `onPlay` dengan transisi instan ke status `STATE_PLAYING` dan meneruskannya ke BitChord tanpa timeout.
             - 🛡️ **Anti Session Conflict**: Memperbaiki deteksi media controller agar tidak membaca paket sendiri.
           files: release_assets/MotoCompanion.apk

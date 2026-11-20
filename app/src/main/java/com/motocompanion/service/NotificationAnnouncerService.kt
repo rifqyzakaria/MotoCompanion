@@ -2,11 +2,13 @@ package com.motocompanion.service
 
 import android.app.Notification
 import android.content.Context
+import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.motocompanion.App
 import com.motocompanion.tts.SlangNormalizer
+import com.motocompanion.util.RoadSyncBridge
 
 class NotificationAnnouncerService : NotificationListenerService() {
 
@@ -35,17 +37,27 @@ class NotificationAnnouncerService : NotificationListenerService() {
 
         val pkg = sbn.packageName ?: return
 
-        // Deteksi aktivitas Honda RoadSync
-        if (com.motocompanion.util.RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(pkg)) {
-            com.motocompanion.util.RoadSyncBridge.isRoadSyncActive = true
-            Log.i(tag, "Notifikasi Honda RoadSync terdeteksi aktif: $pkg")
+        // 1. Deteksi saat Honda RoadSync dibuka / aktif di latar depan
+        if (RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(pkg)) {
+            RoadSyncBridge.isRoadSyncActive = true
+            RoadSyncBridge.setCompanionActive(this, true)
+            Log.i(tag, "Honda RoadSync aktif terdeteksi ($pkg) -> MotoCompanion Auto-Aktif!")
+            sendBroadcast(Intent(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED))
+            return
         }
 
+        // 2. Hanya tangani notifikasi dari WhatsApp / WhatsApp Business
         if (pkg != WHATSAPP_PKG && pkg != WHATSAPP_BUSINESS_PKG) return
+
+        // 3. ATURAN UTAMA: HANYA bacakan pesan atau telepon WhatsApp jika Honda RoadSync sedang AKTIF
+        if (!isRoadSyncCurrentlyActive()) {
+            Log.d(tag, "Notifikasi WhatsApp diabaikan karena Honda RoadSync sedang tidak aktif")
+            return
+        }
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val announceCalls = prefs.getBoolean(KEY_ANNOUNCE_CALLS, true)
-        val announceMessages = prefs.getBoolean(KEY_ANNOUNCE_MESSAGES, false)
+        val announceMessages = prefs.getBoolean(KEY_ANNOUNCE_MESSAGES, true)
 
         val extras = sbn.notification?.extras ?: return
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
@@ -61,6 +73,35 @@ class NotificationAnnouncerService : NotificationListenerService() {
         } else if (announceMessages && text.isNotBlank()) {
             handleIncomingMessage(title, text)
         }
+    }
+
+    /**
+     * Memeriksa apakah Honda RoadSync sedang aktif (berjalan di background/foreground atau tersambung PCX)
+     */
+    private fun isRoadSyncCurrentlyActive(): Boolean {
+        // Cek 1: Flag RoadSync aktif saat notifikasi RoadSync berjalan
+        if (RoadSyncBridge.isRoadSyncActive) return true
+
+        // Cek 2: Cek apakah ada notifikasi RoadSync yang sedang aktif di status bar
+        val hasRoadSyncNotification = try {
+            activeNotifications?.any { sbn ->
+                RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(sbn.packageName)
+            } ?: false
+        } catch (_: Exception) {
+            false
+        }
+        if (hasRoadSyncNotification) {
+            RoadSyncBridge.isRoadSyncActive = true
+            return true
+        }
+
+        // Cek 3: Cek apakah Bluetooth motor PCX atau helm intercom sedang terhubung
+        if (RoadSyncBridge.getConnectedDeviceName(this) != null) {
+            return true
+        }
+
+        // Cek 4: Status companion aktif di preferences
+        return RoadSyncBridge.isCompanionActive(this)
     }
 
     private fun isWhatsAppCall(notification: Notification?, title: String, text: String, category: String): Boolean {
@@ -134,8 +175,25 @@ class NotificationAnnouncerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
-        // Reset state jika panggilan selesai / dibatalkan
         val pkg = sbn?.packageName ?: return
+
+        // Jika notifikasi Honda RoadSync ditutup/hilang
+        if (RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(pkg)) {
+            val stillPresent = try {
+                activeNotifications?.any { RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(it.packageName) } ?: false
+            } catch (_: Exception) {
+                false
+            }
+
+            if (!stillPresent && RoadSyncBridge.getConnectedDeviceName(this) == null) {
+                RoadSyncBridge.isRoadSyncActive = false
+                RoadSyncBridge.setCompanionActive(this, false)
+                Log.i(tag, "Honda RoadSync ditutup -> MotoCompanion standby")
+                sendBroadcast(Intent(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED))
+            }
+        }
+
+        // Reset state jika panggilan selesai / dibatalkan
         if (pkg == WHATSAPP_PKG || pkg == WHATSAPP_BUSINESS_PKG) {
             val category = sbn.notification?.category ?: ""
             if (category == Notification.CATEGORY_CALL) {

@@ -2,8 +2,10 @@ package com.motocompanion.ui
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -42,6 +44,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val roadSyncReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            updateRoadSyncUi()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -61,11 +69,21 @@ class MainActivity : AppCompatActivity() {
         updateRoadSyncUi()
         updateGithubRepoUi()
         trackUpdateHandler.post(trackUpdateRunnable)
+
+        val filter = IntentFilter(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(roadSyncReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(roadSyncReceiver, filter)
+        }
     }
 
     override fun onPause() {
         super.onPause()
         trackUpdateHandler.removeCallbacks(trackUpdateRunnable)
+        try {
+            unregisterReceiver(roadSyncReceiver)
+        } catch (_: Exception) {}
     }
 
     private fun setupListeners() {
@@ -297,7 +315,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateRoadSyncUi() {
         val isInstalled = RoadSyncBridge.isRoadSyncInstalled(this)
-        val isCompanionActive = RoadSyncBridge.isCompanionActive(this)
+        val isCompanionActive = RoadSyncBridge.isCompanionActive(this) || RoadSyncBridge.isRoadSyncActive
         val connectedDevice = RoadSyncBridge.getConnectedDeviceName(this)
 
         if (isCompanionActive) {
@@ -307,7 +325,7 @@ class MainActivity : AppCompatActivity() {
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_red))
             (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, com.motocompanion.R.color.accent_red)
         } else if (isInstalled) {
-            binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi"
+            binding.tvRoadSyncStatus.text = "Honda RoadSync: Siap Dampingi (Otomatis saat RoadSync dibuka) ⚪"
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.text_primary))
             binding.btnToggleCompanion.text = "Aktifkan"
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, com.motocompanion.R.color.accent_green))

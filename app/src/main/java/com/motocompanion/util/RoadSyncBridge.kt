@@ -24,6 +24,7 @@ object RoadSyncBridge {
     private const val PREFS_NAME = "moto_roadsync_prefs"
     const val KEY_AUTO_START_BT = "auto_start_on_bluetooth"
     const val KEY_COMPANION_ACTIVE = "companion_service_active"
+    const val ACTION_ROADSYNC_STATE_CHANGED = "com.motocompanion.ROADSYNC_STATE_CHANGED"
 
     var isRoadSyncActive: Boolean = false
 

@@ -7,6 +7,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.motocompanion.App
+import com.motocompanion.R
 import com.motocompanion.tts.SlangNormalizer
 import com.motocompanion.util.RoadSyncBridge
 

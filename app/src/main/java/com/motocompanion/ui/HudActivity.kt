@@ -4,11 +4,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
+import android.view.Surface
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -20,11 +25,30 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class HudActivity : AppCompatActivity() {
+class HudActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var binding: ActivityHudBinding
     private val clockHandler = Handler(Looper.getMainLooper())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    // Sensor Kompas Gerak Fisik HP
+    private lateinit var sensorManager: SensorManager
+    private var rotationVectorSensor: Sensor? = null
+    private var accelerometer: Sensor? = null
+    private var magnetometer: Sensor? = null
+
+    private val rotationMatrix = FloatArray(9)
+    private val remappedMatrix = FloatArray(9)
+    private val orientationAngles = FloatArray(3)
+
+    private val lastAccelerometer = FloatArray(3)
+    private val lastMagnetometer = FloatArray(3)
+    private var lastAccelerometerSet = false
+    private var lastMagnetometerSet = false
+
+    private var currentFilteredAzimuth = 0f
+    private var currentSpeedKmh = 0f
+    private var currentGpsBearing = 0f
 
     private val clockRunnable = object : Runnable {
         override fun run() {
@@ -39,11 +63,13 @@ class HudActivity : AppCompatActivity() {
             if (intent?.action == GpsTrackingService.BROADCAST_GPS_UPDATE) {
                 val speed = intent.getFloatExtra(GpsTrackingService.EXTRA_SPEED_KMH, 0f)
                 val bearing = intent.getFloatExtra(GpsTrackingService.EXTRA_BEARING, 0f)
-                val cardinal = intent.getStringExtra(GpsTrackingService.EXTRA_CARDINAL) ?: "U"
                 val altitude = intent.getDoubleExtra(GpsTrackingService.EXTRA_ALTITUDE, 0.0)
                 val accuracy = intent.getFloatExtra(GpsTrackingService.EXTRA_ACCURACY, 0f)
 
-                updateHud(speed, bearing, cardinal, altitude, accuracy)
+                currentSpeedKmh = speed
+                currentGpsBearing = bearing
+
+                updateSpeedAndStats(speed, altitude, accuracy)
             }
         }
     }
@@ -56,33 +82,52 @@ class HudActivity : AppCompatActivity() {
         enableImmersiveMode()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        initSensors()
+
         binding.btnCloseHud.setOnClickListener {
             finish()
         }
 
-        // Kontrol Media Cepat di Layar HUD
+        // Kontrol Media Terlihat & Mudah Dikontrol Saat Berkendara
         binding.btnHudPlayPause.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
-            clockHandler.postDelayed({ updateHudMediaInfo() }, 300)
+            clockHandler.postDelayed({ updateHudMediaInfo() }, 250)
         }
 
         binding.btnHudNext.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
-            clockHandler.postDelayed({ updateHudMediaInfo() }, 300)
+            clockHandler.postDelayed({ updateHudMediaInfo() }, 250)
         }
 
         binding.btnHudPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
-            clockHandler.postDelayed({ updateHudMediaInfo() }, 300)
+            clockHandler.postDelayed({ updateHudMediaInfo() }, 250)
         }
 
         clockHandler.post(clockRunnable)
+    }
+
+    private fun initSensors() {
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        if (rotationVectorSensor == null) {
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+            magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         enableImmersiveMode()
         updateHudMediaInfo()
+
+        // Daftarkan listener sensor kompas HP
+        if (rotationVectorSensor != null) {
+            sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_UI)
+        } else {
+            accelerometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
+            magnetometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
+        }
 
         val filter = IntentFilter(GpsTrackingService.BROADCAST_GPS_UPDATE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -94,6 +139,7 @@ class HudActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        sensorManager.unregisterListener(this)
         try {
             unregisterReceiver(gpsReceiver)
         } catch (_: Exception) {}
@@ -104,34 +150,145 @@ class HudActivity : AppCompatActivity() {
         clockHandler.removeCallbacks(clockRunnable)
     }
 
-    private fun updateHud(speed: Float, bearing: Float, cardinal: String, altitude: Double, accuracy: Float) {
-        // Kecepatan
+    override fun onSensorChanged(event: SensorEvent) {
+        var rawAzimuthDeg: Float? = null
+
+        if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+            rawAzimuthDeg = calculateAzimuth(rotationMatrix)
+        } else if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            System.arraycopy(event.values, 0, lastAccelerometer, 0, event.values.size)
+            lastAccelerometerSet = true
+        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, lastMagnetometer, 0, event.values.size)
+            lastMagnetometerSet = true
+        }
+
+        if (rawAzimuthDeg == null && lastAccelerometerSet && lastMagnetometerSet) {
+            if (SensorManager.getRotationMatrix(rotationMatrix, null, lastAccelerometer, lastMagnetometer)) {
+                rawAzimuthDeg = calculateAzimuth(rotationMatrix)
+            }
+        }
+
+        if (rawAzimuthDeg != null) {
+            updateCompassDisplay(rawAzimuthDeg)
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    /**
+     * Menghitung sudut derajat arah kompas disesuaikan orientasi layar LANDSCAPE
+     */
+    private fun calculateAzimuth(matrix: FloatArray): Float {
+        @Suppress("DEPRECATION")
+        val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            display?.rotation ?: Surface.ROTATION_90
+        } else {
+            windowManager.defaultDisplay.rotation
+        }
+
+        when (rotation) {
+            Surface.ROTATION_90 -> {
+                SensorManager.remapCoordinateSystem(
+                    matrix,
+                    SensorManager.AXIS_Y,
+                    SensorManager.AXIS_MINUS_X,
+                    remappedMatrix
+                )
+            }
+            Surface.ROTATION_270 -> {
+                SensorManager.remapCoordinateSystem(
+                    matrix,
+                    SensorManager.AXIS_MINUS_Y,
+                    SensorManager.AXIS_X,
+                    remappedMatrix
+                )
+            }
+            Surface.ROTATION_180 -> {
+                SensorManager.remapCoordinateSystem(
+                    matrix,
+                    SensorManager.AXIS_MINUS_X,
+                    SensorManager.AXIS_MINUS_Y,
+                    remappedMatrix
+                )
+            }
+            else -> {
+                SensorManager.remapCoordinateSystem(
+                    matrix,
+                    SensorManager.AXIS_X,
+                    SensorManager.AXIS_Y,
+                    remappedMatrix
+                )
+            }
+        }
+
+        SensorManager.getOrientation(remappedMatrix, orientationAngles)
+        var azimuth = Math.toDegrees(orientationAngles[0].toDouble()).toFloat()
+        if (azimuth < 0) azimuth += 360f
+        return azimuth
+    }
+
+    /**
+     * Memperbarui kompas dengan interpolasi halus mengikuti gerak fisik HP
+     */
+    private fun updateCompassDisplay(sensorAzimuth: Float) {
+        // Jika sedang melaju kencang (> 15 km/jam), arah GPS sangat presisi; jika pelan / diam, sensor HP aktif penuh
+        val isUsingGps = currentSpeedKmh > 15f && currentGpsBearing > 0f
+        val targetHeading = if (isUsingGps) currentGpsBearing else sensorAzimuth
+
+        // Hitung jarak sudut terpendek agar jarum tidak berputar 360 derajat saat melewati 0/360
+        var diff = (targetHeading - currentFilteredAzimuth) % 360f
+        if (diff > 180f) diff -= 360f
+        if (diff < -180f) diff += 360f
+
+        // Faktor penghalusan (damping)
+        currentFilteredAzimuth = ((currentFilteredAzimuth + diff * 0.25f) % 360f + 360f) % 360f
+
+        // Putar jarum kompas menunjuk ke Utara secara fisik
+        binding.ivCompassNeedle.rotation = -currentFilteredAzimuth
+
+        val headingInt = currentFilteredAzimuth.toInt()
+        val modeLabel = if (isUsingGps) getString(R.string.hud_compass_mode_gps) else getString(R.string.hud_compass_mode_sensor)
+        binding.tvBearingDegrees.text = String.format(Locale.getDefault(), "%03d° • %s", headingInt, modeLabel)
+        binding.tvCardinalDirection.text = getCardinal(currentFilteredAzimuth)
+    }
+
+    private fun updateSpeedAndStats(speed: Float, altitude: Double, accuracy: Float) {
         binding.tvSpeedValue.text = speed.toInt().toString()
-
-        // Jarum Kompas Anti-Pusing (Rotasi needle ke bearing pergerakan)
-        binding.ivCompassNeedle.animate()
-            .rotation(bearing)
-            .setDuration(300)
-            .start()
-
-        // Teks Arah & Derajat
-        binding.tvCardinalDirection.text = cardinal
-        binding.tvBearingDegrees.text = getString(R.string.hud_bearing_locked, bearing.toInt())
-
-        // Informasi Tambahan
         binding.tvAltitude.text = getString(R.string.hud_altitude_format, altitude.toInt())
         binding.tvGpsAccuracy.text = getString(R.string.hud_gps_accuracy_format, accuracy)
     }
 
+    private fun getCardinal(bearing: Float): String {
+        return when (((bearing + 22.5f) % 360f / 45f).toInt()) {
+            0 -> "U (Utara)"
+            1 -> "TL (Timur Laut)"
+            2 -> "T (Timur)"
+            3 -> "TG (Tenggara)"
+            4 -> "S (Selatan)"
+            5 -> "BD (Barat Daya)"
+            6 -> "B (Barat)"
+            7 -> "BL (Barat Laut)"
+            else -> "U (Utara)"
+        }
+    }
+
+    /**
+     * Memperbarui status media player di HUD agar selalu tampak jelas dan mudah dikontrol pengendara
+     */
     private fun updateHudMediaInfo() {
         val track = MediaControlDispatcher.getActiveTrackInfo(this)
+        val selectedPlayer = MediaControlDispatcher.getSelectedName(this)
+
         if (track != null && track.title.isNotBlank()) {
-            val status = if (track.isPlaying) "▶" else "⏸"
-            binding.tvActivePlayerHud.text = "$status ${track.title} (${track.appName})"
+            binding.tvHudSongTitle.text = track.title
+            binding.tvHudSongArtist.text = "${track.artist} • ${track.appName}"
             binding.btnHudPlayPause.text = if (track.isPlaying) "⏸" else "▶"
         } else {
-            val activePlayer = MediaControlDispatcher.getSelectedName(this)
-            binding.tvActivePlayerHud.text = getString(R.string.hud_player_format, activePlayer)
+            binding.tvHudSongTitle.text = getString(R.string.hud_music_ready)
+            binding.tvHudSongArtist.text = getString(R.string.hud_player_format, selectedPlayer)
+            binding.btnHudPlayPause.text = "▶"
         }
     }
 

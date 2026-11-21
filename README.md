@@ -1,46 +1,50 @@
 # 🏍️ H-Sync (Pendamping Cerdas Honda RoadSync)
 
-**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) cerdas dan minimalis karya **mrzzz92** yang dirancang khusus untuk mendampingi **Honda RoadSync (HSVCS)** di seluruh lini motor Honda (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok koneksi Bluetooth.
+**H-Sync** (sebelumnya MotoCompanion) adalah aplikasi pendamping (_companion app_) cerdas dan minimalis karya **rifqyzakaria** yang dirancang khusus untuk mendampingi **Honda RoadSync (HSVCS)** di seluruh lini motor Honda (PCX, ADV, Forza, Hornet, Transalp, CB, Rebel, dll.) tanpa bentrok koneksi Bluetooth.
 
-Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **mrzzz92** dengan sistem pembaruan otomatis yang terkunci ke repositori resmi GitHub `rifqyzakaria/MotoCompanion`.
+Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **rifqyzakaria** dengan sistem pembaruan otomatis yang terkunci ke repositori resmi GitHub `rifqyzakaria/MotoCompanion`.
 
 ---
 
 ## 🚀 Fitur Utama
 
-1. **Sakelar Pemutar Musik H-Sync (H-Sync Music Bridge Toggle)**
+1. **Mode HUD Stang Baru & Kompas Sensor Gerak HP (`HudActivity`)**
+   - Kompas kini responsif mengikuti gerak, putaran, dan orientasi fisik HP secara *real-time* dengan animasi perputaran jarum yang halus (*smooth dampening*).
+   - Menggabungkan sensor orientasi HP saat berhenti/kecepatan rendah dan vektor arah GPS saat melaju kencang (> 15 km/jam) untuk akurasi maksimal.
+
+2. **Bilah Media Player HUD yang Terlihat & Mudah Dikontrol**
+   - Tampilan pemutar musik di mode HUD dirancang khusus pengendara: judul lagu dan nama artis tampil jelas, dilengkapi tombol navigasi berukuran besar yang nyaman ditekan (*tactile buttons*).
+
+3. **Pemisahan Cerdas Android Auto (Car Mode Separation)**
+   - H-Sync secara otomatis mendeteksi saat ponsel terhubung ke **Android Auto** di mobil dan langsung memasuki mode *standby/pause*, sehingga tidak akan mengganggu sistem infotainment mobil Anda. H-Sync hanya aktif saat berkendara motor Honda / RoadSync!
+
+4. **Pemeriksaan Pembaruan Otomatis**
+   - Aplikasi otomatis memeriksa ketersediaan rilis resmi terbaru di GitHub saat pertama kali dibuka.
+
+5. **Sakelar Pemutar Musik H-Sync (H-Sync Music Bridge Toggle)**
    - **Aktif (ON)**: H-Sync bertindak sebagai pemutar Spotify virtual yang meneruskan lagu dan perintah stang dari aplikasi pihak ketiga luar (seperti **BitChord**, pemutar kustom, dll.) ke layar TFT speedometer motor Honda.
-   - **Nonaktif (OFF)**: Honda RoadSync dapat langsung mendeteksi dan mengontrol pemutar musik resmi ter-whitelist (seperti **Spotify resmi, YouTube Music, Samsung Music, VLC**, dll.) tanpa bentrok, sementara fitur pengumuman panggilan WhatsApp dan stabilizer GPS H-Sync tetap berjalan di latar belakang!
+   - **Nonaktif (OFF)**: Honda RoadSync dapat langsung mendeteksi dan mengontrol pemutar musik resmi ter-whitelist (seperti **Spotify resmi, YouTube Music, Samsung Music, VLC**, dll.) tanpa bentrok.
 
-2. **Solusi "Kesalahan Aplikasi Musik" di Layar TFT / HP**
-   - Layar peringatan _"Kesalahan Aplikasi Musik: 1. Pastikan terinstal, 2. Masuk akun, 3. Putar lagu untuk memulai koneksi"_ adalah mekanisme verifikasi RoadSync yang membutuhkan **sesi media aktif**.
-   - Cukup putar lagu minimal 1 kali di aplikasi pemutar Anda (BitChord / Spotify) sebelum membuka menu Musik di RoadSync / stang motor agar RoadSync dapat membaca metadata track secara sempurna.
+6. **Solusi "Kesalahan Aplikasi Musik" di Layar TFT / HP**
+   - Sesuai petunjuk RoadSync, cukup putar lagu minimal 1 kali di aplikasi pemutar Anda (BitChord / Spotify) sebelum membuka menu Musik di RoadSync / stang motor agar RoadSync dapat membaca metadata track secara sempurna.
 
-3. **Pemilih Pemutar Media Fleksibel (`MediaControlDispatcher` & `PlayerSelectorActivity`)**
-   - Mendeteksi secara otomatis seluruh pemutar audio & video yang terinstal di HP Anda (baik dari **Google Play Store** maupun dari **sideload APK luar**).
-   - Tombol navigasi stang motor Honda dan intercom helm (Play, Pause, Next, Prev) langsung diteruskan ke pemutar yang dipilih.
-
-4. **Deteksi & Pembaca Panggilan WhatsApp Otomatis (`NotificationAnnouncerService`)**
+7. **Deteksi & Pembaca Panggilan WhatsApp Otomatis (`NotificationAnnouncerService`)**
    - Mendeteksi panggilan suara/video WhatsApp masuk secara _real-time_.
    - Menerapkan _Audio Ducking_ (volume musik otomatis mengecil saat panggilan masuk).
    - Membacakan nama kontak penelepon langsung ke intercom helm Bluetooth.
 
-5. **Speedometer & Kompas GPS Stabil Anti-Pusing (`GpsStabilizer` + `HudActivity`)**
-   - Mengunci arah kompas saat motor berhenti `< 3.5 km/jam` agar arah peta tidak berputar liar akibat interferensi magnet motor.
-   - Menyaring pergerakan arah dengan algoritma _Circular Exponential Moving Average_.
-
-6. **Pengaturan Bahasa & Tampilan Dinamis (`LocaleThemeManager`)**
+8. **Pengaturan Bahasa & Tampilan Dinamis (`LocaleThemeManager`)**
    - **Pilihan Bahasa**: Bahasa Indonesia & English. Seluruh teks UI, dialog pembaruan, dan suara pengumuman otomatis berganti.
    - **Pilihan Mode Tampilan**: Otomatis (Ikuti Sistem HP), Mode Gelap (Dark Mode), atau Mode Terang (Light Mode).
 
-7. **Auto-Start & Auto-Stop Cerdas**
+9. **Auto-Start & Auto-Stop Cerdas**
    - Otomatis aktif saat motor terhubung ke Bluetooth dan mati bersih saat kontak motor mati.
 
 ---
 
 ## 👨‍💻 Pengembang Resmi
 
-Dibuat & Dikelola secara resmi oleh: **[mrzzz92](https://github.com/rifqyzakaria)**  
+Dibuat & Dikelola secara resmi oleh: **[rifqyzakaria](https://github.com/rifqyzakaria)**
 Repositori Resmi: [rifqyzakaria/MotoCompanion](https://github.com/rifqyzakaria/MotoCompanion)
 
 ---

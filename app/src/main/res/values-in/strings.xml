@@ -5,10 +5,10 @@
     <string name="service_announcer_name">Pengumum Panggilan WA &amp; Pesan Motor</string>
     <string name="title_dashboard">H-SYNC</string>
     <string name="subtitle_dashboard">Pendamping Cerdas Honda RoadSync</string>
-    <string name="app_author">Dibuat oleh @mrz92</string>
-    <string name="app_footer">H-Sync • Pendamping Cerdas Honda RoadSync • Dibuat oleh @mrz92</string>
+    <string name="app_author">oleh rifqyzakaria</string>
+    <string name="app_footer">H-Sync • Pendamping Cerdas Honda RoadSync • rifqyzakaria</string>
     <string name="official_source_desc">Sumber Resmi: github.com/rifqyzakaria/MotoCompanion</string>
-    <string name="badge_verified_author">🛡️ @mrz92 RESMI</string>
+    <string name="badge_verified_author">rifqyzakaria (Resmi)</string>
 
     <!-- Status Badges -->
     <string name="status_active">🟢 AKTIF</string>
@@ -101,14 +101,24 @@
     <string name="btn_configure">Atur</string>
     <string name="current_version_format">Versi Saat Ini: v%1$s</string>
     <string name="btn_check_update">Periksa Pembaruan GitHub</string>
-    <string name="toast_checking_update">Memeriksa rilis terbaru dari sumber resmi GitHub (@mrz92)...</string>
-    <string name="update_dialog_title">Pembaruan Resmi: %1$s (@mrz92)</string>
-    <string name="update_dialog_message">Versi resmi terbaru dari @mrz92 telah tersedia di GitHub!\n\nCatatan Pembaruan:\n%1$s\n\nUnduh dan pasang pembaruan resmi sekarang?</string>
+    <string name="toast_checking_update">Memeriksa rilis terbaru dari sumber resmi GitHub...</string>
+    <string name="update_dialog_title">Pembaruan Resmi: %1$s</string>
+    <string name="update_dialog_message">Versi resmi terbaru telah tersedia di GitHub!\n\nCatatan Pembaruan:\n%1$s\n\nUnduh dan pasang pembaruan resmi sekarang?</string>
     <string name="update_dialog_btn_download">Perbarui Sekarang</string>
     <string name="update_dialog_btn_later">Nanti</string>
     <string name="update_downloading_title">Mengunduh Pembaruan Resmi</string>
-    <string name="update_downloading_message">Mengunduh versi %1$s dari repositori resmi @mrz92...</string>
-    <string name="update_up_to_date">Aplikasi sudah versi resmi terbaru (%1$s) dari @mrz92</string>
+    <string name="update_downloading_message">Mengunduh versi %1$s dari repositori resmi...</string>
+    <string name="update_up_to_date">Aplikasi sudah versi resmi terbaru (%1$s)</string>
+
+    <!-- Android Auto Integration -->
+    <string name="status_android_auto_active">Mobil Terhubung (Android Auto) • H-Sync Nonaktif</string>
+    <string name="status_android_auto_toast">🚗 Terhubung ke Mobil (Android Auto). H-Sync dinonaktifkan.</string>
+
+    <!-- Handlebar HUD Mode -->
+    <string name="hud_music_no_track">Belum ada lagu berputar</string>
+    <string name="hud_music_ready">Siap Memutar</string>
+    <string name="hud_compass_mode_sensor">Sensor HP</string>
+    <string name="hud_compass_mode_gps">Vektor GPS</string>
 
     <!-- Dialogs & Bike Guide (Symmetrical & Clean) -->
     <string name="guide_title">🏍️ Panduan Koneksi Honda RoadSync</string>

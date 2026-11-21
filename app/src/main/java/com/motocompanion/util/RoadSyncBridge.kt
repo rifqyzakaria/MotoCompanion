@@ -7,6 +7,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -30,8 +32,44 @@ object RoadSyncBridge {
     const val KEY_COMPANION_ACTIVE = "companion_service_active"
     const val KEY_MUSIC_PLAYER_ENABLED = "key_music_player_bridge_enabled"
     const val ACTION_ROADSYNC_STATE_CHANGED = "com.motocompanion.ROADSYNC_STATE_CHANGED"
+    const val ACTION_CAR_CONNECTION_UPDATED = "androidx.car.app.connection.action.CAR_CONNECTION_UPDATED"
 
     var isRoadSyncActive: Boolean = false
+
+    /**
+     * Memeriksa apakah ponsel sedang terhubung ke mobil / Android Auto (Head Unit).
+     * Jika terhubung, H-Sync tidak boleh berjalan agar tidak bentrok dengan sistem mobil.
+     */
+    fun isAndroidAutoConnected(context: Context): Boolean {
+        // 1. Periksa CarConnection Content Provider (Android Auto Projection & AAOS)
+        try {
+            val uri = Uri.parse("content://androidx.car.app.connection")
+            context.contentResolver.query(uri, arrayOf("CarConnectionState"), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val colIndex = cursor.getColumnIndex("CarConnectionState")
+                    if (colIndex != -1) {
+                        val state = cursor.getInt(colIndex)
+                        // 1 = NATIVE (AAOS), 2 = PROJECTION (Android Auto)
+                        if (state == 1 || state == 2) {
+                            Log.i(TAG, "🚗 Android Auto terdeteksi aktif (state=$state)")
+                            return true
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
+        // 2. Periksa UiModeManager Car Mode (Docking / Head Unit mobil)
+        try {
+            val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as? android.app.UiModeManager
+            if (uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_CAR) {
+                Log.i(TAG, "🚗 Car Mode terdeteksi aktif via UiModeManager")
+                return true
+            }
+        } catch (_: Exception) {}
+
+        return false
+    }
 
     fun isMusicPlayerEnabled(context: Context): Boolean {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -119,6 +157,12 @@ object RoadSyncBridge {
      * Otomatis mengaktifkan H-Sync saat motor Honda RoadSync / Bluetooth tersambung
      */
     fun startAllServices(context: Context, triggerSource: String = "") {
+        if (isAndroidAutoConnected(context)) {
+            Log.w(TAG, "🛑 Android Auto / Mobil terdeteksi ($triggerSource). H-Sync dicegah agar tidak berjalan.")
+            stopAllServices(context, "Android Auto Terhubung")
+            return
+        }
+
         Log.i(TAG, "🟢 Mengaktifkan H-Sync secara otomatis (Trigger: $triggerSource)")
         isRoadSyncActive = true
         setCompanionActive(context, true)

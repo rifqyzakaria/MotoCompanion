@@ -88,7 +88,12 @@ class MainActivity : AppCompatActivity() {
         updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
         trackUpdateHandler.post(trackUpdateRunnable)
 
-        val filter = IntentFilter(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED)
+        val filter = IntentFilter().apply {
+            addAction(RoadSyncBridge.ACTION_ROADSYNC_STATE_CHANGED)
+            addAction(RoadSyncBridge.ACTION_CAR_CONNECTION_UPDATED)
+            addAction(android.app.UiModeManager.ACTION_ENTER_CAR_MODE)
+            addAction(android.app.UiModeManager.ACTION_EXIT_CAR_MODE)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(roadSyncReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
@@ -391,11 +396,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateRoadSyncUi() {
+        val isAndroidAuto = RoadSyncBridge.isAndroidAutoConnected(this)
         val isInstalled = RoadSyncBridge.isRoadSyncInstalled(this)
         val isCompanionActive = RoadSyncBridge.isCompanionActive(this) || RoadSyncBridge.isRoadSyncActive
         val connectedDevice = RoadSyncBridge.getConnectedDeviceName(this)
 
-        if (isCompanionActive) {
+        if (isAndroidAuto) {
+            binding.tvRoadSyncStatus.text = getString(R.string.status_android_auto_active)
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
+            binding.btnToggleCompanion.isEnabled = false
+            binding.tvHeaderStatusBadge.text = "🚗 MOBIL"
+            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill_pending)
+        } else if (isCompanionActive) {
+            binding.btnToggleCompanion.isEnabled = true
             binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_active)
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_off)
@@ -405,6 +420,7 @@ class MainActivity : AppCompatActivity() {
             binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
             binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill_active)
         } else if (isInstalled) {
+            binding.btnToggleCompanion.isEnabled = true
             binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_ready)
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
@@ -414,6 +430,7 @@ class MainActivity : AppCompatActivity() {
             binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
             binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill)
         } else {
+            binding.btnToggleCompanion.isEnabled = true
             binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_not_installed)
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)

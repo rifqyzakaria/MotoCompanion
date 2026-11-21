@@ -30,6 +30,12 @@ class BluetoothConnectionReceiver : BroadcastReceiver() {
         if (BluetoothDevice.ACTION_ACL_CONNECTED == action) {
             Log.i(tag, "Bluetooth connected: $deviceName (isTarget=$isTargetDevice)")
 
+            if (RoadSyncBridge.isAndroidAutoConnected(context)) {
+                Log.i(tag, "🚗 Android Auto / Mobil aktif. H-Sync tidak dijalankan.")
+                RoadSyncBridge.stopAllServices(context, "Android Auto aktif")
+                return
+            }
+
             if (isTargetDevice && RoadSyncBridge.isAutoStartEnabled(context)) {
                 // Otomatis aktifkan H-Sync saat motor Honda / helm terhubung
                 RoadSyncBridge.startAllServices(context, "Bluetooth $deviceName")

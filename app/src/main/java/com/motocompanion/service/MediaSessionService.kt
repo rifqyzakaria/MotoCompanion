@@ -494,8 +494,8 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action != ACTION_STOP_SERVICE && !RoadSyncBridge.isMusicPlayerEnabled(this)) {
-            Log.w(tag, "Service musik dipanggil namun sedang dinonaktifkan oleh pengguna. Menghentikan service.")
+        if (intent?.action != ACTION_STOP_SERVICE && (RoadSyncBridge.isAndroidAutoConnected(this) || !RoadSyncBridge.isMusicPlayerEnabled(this))) {
+            Log.w(tag, "Service musik dipanggil namun sedang dinonaktifkan atau Android Auto terhubung di mobil. Menghentikan service.")
             handleStopService()
             return START_NOT_STICKY
         }
@@ -739,6 +739,10 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        if (RoadSyncBridge.isAndroidAutoConnected(this)) {
+            Log.w(tag, "MediaBrowser client $clientPackageName ditolak karena ponsel sedang terhubung ke mobil / Android Auto")
+            return null
+        }
         if (!RoadSyncBridge.isMusicPlayerEnabled(this)) {
             Log.w(tag, "MediaBrowser client $clientPackageName ditolak karena pemutar musik H-Sync sedang dinonaktifkan")
             return null

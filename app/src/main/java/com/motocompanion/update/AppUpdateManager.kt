@@ -24,7 +24,7 @@ import kotlin.concurrent.thread
 object AppUpdateManager {
 
     private const val TAG = "MotoAppUpdate"
-    const val OFFICIAL_AUTHOR = "@mrz92"
+    const val OFFICIAL_AUTHOR = "rifqyzakaria"
     const val OFFICIAL_REPO = "rifqyzakaria/MotoCompanion"
 
     data class ReleaseInfo(
@@ -39,7 +39,7 @@ object AppUpdateManager {
     }
 
     /**
-     * Memeriksa pembaruan terbaru langsung dan hanya dari repositori resmi GitHub @mrz92
+     * Memeriksa pembaruan terbaru langsung dan hanya dari repositori resmi GitHub rifqyzakaria
      */
     fun checkForUpdates(
         context: Context,
@@ -55,6 +55,7 @@ object AppUpdateManager {
                 val connection = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
                     setRequestProperty("Accept", "application/vnd.github.v3+json")
+                    setRequestProperty("User-Agent", "rifqyzakaria-HSync")
                     connectTimeout = 8000
                     readTimeout = 8000
                 }
@@ -180,6 +181,7 @@ object AppUpdateManager {
             try {
                 val url = URL(downloadUrl)
                 val connection = (url.openConnection() as HttpURLConnection).apply {
+                    setRequestProperty("User-Agent", "rifqyzakaria-HSync")
                     connectTimeout = 15000
                     readTimeout = 15000
                     instanceFollowRedirects = true

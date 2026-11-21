@@ -58,31 +58,30 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: H-Sync-v1.5.1-APK
+          name: H-Sync-v1.6.0-APK
           path: release_assets/MotoCompanion.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.5.1' }}
-          name: "H-Sync v1.5.1 (Music Player Toggle & Official @mrz92 Source)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.6.0' }}
+          name: "H-Sync v1.6.0 (Motion Compass HUD, Android Auto Separation & Elegant UI by rifqyzakaria)"
           body: |
-            ### 🏍️ H-Sync v1.5.1 (Official Update by @mrz92)
+            ### 🏍️ H-Sync v1.6.0 (Official Release by rifqyzakaria)
 
             Pembaruan terbaru H-Sync (Pendamping Cerdas Honda RoadSync untuk semua lini motor Honda):
-            - 🎵 **Sakelar Pemutar Musik H-Sync (Music Player Switch)**:
-              - **Aktif (ON)**: H-Sync bertindak sebagai jembatan Spotify virtual ke pemutar pihak ketiga (BitChord, dll.) untuk ditampilkan di TFT Honda PCX / ADV.
-              - **Nonaktif (OFF)**: RoadSync dapat langsung memilih dan menghubungkan pemutar resmi ter-whitelist (Spotify resmi, YouTube Music, Samsung Music, VLC, dll.) tanpa bentrok, sementara fitur pengumuman WA dan GPS H-Sync tetap aktif.
-            - 🛡️ **Kredit Pembuat Resmi (@mrz92) & Proteksi Pembaruan**:
-              - Dikembangkan dan ditandatangani resmi oleh **@mrz92**.
-              - Sistem pembaruan aplikasi otomatis terkunci khusus ke repositori resmi GitHub `@mrz92` (`rifqyzakaria/MotoCompanion`), mencegah modifikasi dan menjaga keamanan penuh aplikasi.
-            - 📐 **Format Teks & Panduan Simetris (UI Symmetrical Polish)**:
-              - Tampilan panduan motor (Bike Guide), dialog pembaruan GitHub, dan status kartu kini tertata simetris, rapi, dan konsisten dalam Bahasa Indonesia dan English.
-            - 🌐 **Dukungan Multi-Bahasa & Mode Gelap/Terang**:
-              - Pengaturan Bahasa Indonesia & Inggris serta tema Gelap/Terang/Otomatis.
-            - ⚡ **Auto-Start & Auto-Stop Cerdas**:
-              - Otomatis hidup saat motor tersambung dan mati total saat kontak motor mati.
+            - 🧭 **Mode HUD Baru & Kompas Sensor Gerak HP**:
+              - Kompas kini responsif mengikuti putaran dan orientasi fisik HP secara *real-time* saat dipegang atau dipasang di stang.
+              - Transisi sudut kompas yang halus (*smooth dampening*) dengan perpaduan sensor orientasi HP dan vektor GPS berkecepatan tinggi.
+            - 🎵 **Pembaruan Media Player HUD (Visible & Easy to Control)**:
+              - Bilah pemutar media kini tampil menonjol di bagian bawah layar HUD dengan judul lagu, artis, serta tombol sentuh besar ramah sarung tangan (*tactile buttons*).
+            - 🚗 **Pemisahan Cerdas Android Auto (Car Mode Separation)**:
+              - H-Sync secara otomatis mendeteksi saat HP terhubung ke **Android Auto** di mobil dan otomatis *standby/pause*, sehingga tidak akan mengganggu sistem infotainment mobil Anda. H-Sync hanya aktif saat berkendara motor Honda / RoadSync!
+            - 🔄 **Pengecekan Pembaruan Otomatis**:
+              - Aplikasi secara otomatis memeriksa ketersediaan pembaruan resmi di GitHub saat pertama kali dibuka.
+            - ✨ **Desain UI/UX Minimalis & Fluid**:
+              - Tata letak antarmuka dirampingkan, animasi layout halus (*fluid animation*), dan kredit pembuat elegan **rifqyzakaria**.
           files: release_assets/MotoCompanion.apk
           draft: false
           prerelease: false

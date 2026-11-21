@@ -3,188 +3,293 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:background="@color/hud_bg"
     android:keepScreenOn="true"
-    android:padding="20dp">
+    android:paddingStart="20dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="14dp">
 
-    <!-- Top Bar: Clock & GPS Accuracy -->
-    <TextView
-        android:id="@+id/tvHudClock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="12:00"
-        android:textColor="@color/hud_text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tvActivePlayerHud"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🎵 Pemutar: -"
-        android:textColor="@color/hud_accent_cyan"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toStartOf="@+id/tvGpsAccuracy"
-        app:layout_constraintStart_toEndOf="@+id/tvHudClock"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tvGpsAccuracy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GPS: Akurasi ±3m"
-        android:textColor="@color/hud_accent_green"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Center Left: Huge Speedometer -->
+    <!-- Top Bar: Clock, Mode Pill & Exit Button -->
     <LinearLayout
-        android:id="@+id/layoutSpeedometer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/layoutBottomBar"
-        app:layout_constraintEnd_toStartOf="@+id/layoutCompass"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvHudClock">
-
-        <TextView
-            android:id="@+id/tvSpeedValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:text="0"
-            android:textColor="@color/hud_accent_cyan"
-            android:textSize="100sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.2"
-            android:text="@string/hud_speed_unit"
-            android:textColor="@color/hud_text_secondary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <!-- Center Right: Stabilized Heading Compass -->
-    <LinearLayout
-        android:id="@+id/layoutCompass"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/layoutBottomBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/layoutSpeedometer"
-        app:layout_constraintTop_toBottomOf="@+id/tvGpsAccuracy">
-
-        <!-- Compass Needle Container -->
-        <FrameLayout
-            android:layout_width="140dp"
-            android:layout_height="140dp"
-            android:background="@drawable/bg_rounded_card">
-
-            <ImageView
-                android:id="@+id/ivCompassNeedle"
-                android:layout_width="90dp"
-                android:layout_height="90dp"
-                android:layout_gravity="center"
-                android:contentDescription="Compass Needle"
-                android:src="@drawable/ic_compass_needle" />
-        </FrameLayout>
-
-        <!-- Cardinal & Degrees -->
-        <TextView
-            android:id="@+id/tvCardinalDirection"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="U (Utara)"
-            android:textColor="@color/hud_text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvBearingDegrees"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="000°"
-            android:textColor="@color/hud_accent_cyan"
-            android:textSize="13sp" />
-    </LinearLayout>
-
-    <!-- Bottom Bar: Media Controls & Status -->
-    <LinearLayout
-        android:id="@+id/layoutBottomBar"
+        android:id="@+id/layoutHudTopBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/tvAltitude"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Ketinggian: - mdpl"
-            android:textColor="@color/hud_text_secondary"
-            android:textSize="12sp" />
-
-        <!-- Quick Media Bar (Rider Friendly) -->
-        <LinearLayout
+            android:id="@+id/tvHudClock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:text="12:00"
+            android:textColor="@color/hud_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnHudPrev"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="56dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="8dp"
-                android:text="◀"
-                android:textColor="@color/hud_text_primary"
-                app:strokeColor="@color/border_color" />
+        <TextView
+            android:id="@+id/tvHudStatusPill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/bg_pill"
+            android:paddingStart="10dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="3dp"
+            android:text="H-SYNC HUD • KOMPAS AKTIF"
+            android:textColor="@color/hud_accent_cyan"
+            android:textSize="10sp"
+            android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnHudPlayPause"
-                android:layout_width="70dp"
-                android:layout_height="46dp"
-                android:backgroundTint="@color/accent_cyan"
-                android:text="⏯"
-                android:textColor="#0D1117"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnHudNext"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="56dp"
-                android:layout_height="44dp"
-                android:layout_marginStart="8dp"
-                android:text="▶"
-                android:textColor="@color/hud_text_primary"
-                app:strokeColor="@color/border_color" />
-        </LinearLayout>
+        <!-- Spacer -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/btnCloseHud"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_height="36dp"
+            android:minHeight="36dp"
             android:text="@string/hud_exit"
-            android:textColor="@color/accent_red" />
+            android:textColor="@color/accent_red"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Center Display: Left = Speedometer, Right = Dynamic Compass -->
+    <LinearLayout
+        android:id="@+id/layoutHudCenter"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/cardHudMedia"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layoutHudTopBar">
+
+        <!-- Left Column: Big Speedometer & Sub-Stats -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSpeedValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="0"
+                android:textColor="@color/hud_accent_cyan"
+                android:textSize="100sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSpeedUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.2"
+                android:text="@string/hud_speed_unit"
+                android:textColor="@color/hud_text_secondary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Sub Stats Row (Altitude & GPS Accuracy) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvAltitude"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ketinggian: - mdpl"
+                    android:textColor="@color/hud_text_secondary"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="•"
+                    android:textColor="@color/border_color" />
+
+                <TextView
+                    android:id="@+id/tvGpsAccuracy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GPS: Akurasi ±3m"
+                    android:textColor="@color/hud_accent_green"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="120dp"
+            android:background="@color/border_color" />
+
+        <!-- Right Column: Dynamic Compass Following Phone Movement -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Circular Dial with Compass Needle -->
+            <FrameLayout
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:background="@drawable/bg_hud_dial">
+
+                <ImageView
+                    android:id="@+id/ivCompassNeedle"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Compass Needle"
+                    android:src="@drawable/ic_compass_needle" />
+            </FrameLayout>
+
+            <!-- Cardinal & Degrees -->
+            <TextView
+                android:id="@+id/tvCardinalDirection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="U (Utara)"
+                android:textColor="@color/hud_text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvBearingDegrees"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="000° • Sensor HP"
+                android:textColor="@color/hud_accent_cyan"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom: Dedicated, Visible & Easy-to-Control Media Player Bar -->
+    <LinearLayout
+        android:id="@+id/cardHudMedia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_hud_media_card"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Music Note Icon / Indicator -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:text="🎵"
+            android:textSize="20sp" />
+
+        <!-- Song Title & Artist (Visible & Clear for Riders) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvHudSongTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="@string/hud_music_ready"
+                android:textColor="@color/hud_text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvHudSongArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="Pemutar H-Sync"
+                android:textColor="@color/hud_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Large Tactile Rider-Friendly Control Buttons -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnHudPrev"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="44dp"
+                android:minWidth="48dp"
+                android:padding="0dp"
+                android:text="◀"
+                android:textColor="@color/hud_text_primary"
+                android:textSize="16sp"
+                app:strokeColor="@color/border_color" />
+
+            <Button
+                android:id="@+id/btnHudPlayPause"
+                android:layout_width="64dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/accent_cyan"
+                android:minWidth="64dp"
+                android:padding="0dp"
+                android:text="⏯"
+                android:textColor="#0D1117"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnHudNext"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="48dp"
+                android:layout_height="44dp"
+                android:minWidth="48dp"
+                android:padding="0dp"
+                android:text="▶"
+                android:textColor="@color/hud_text_primary"
+                android:textSize="16sp"
+                app:strokeColor="@color/border_color" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

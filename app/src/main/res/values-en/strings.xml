@@ -5,10 +5,10 @@
     <string name="service_announcer_name">WA Call &amp; Message Announcer for Motorcycle</string>
     <string name="title_dashboard">H-SYNC</string>
     <string name="subtitle_dashboard">Smart Companion for Honda RoadSync</string>
-    <string name="app_author">Created by @mrz92</string>
-    <string name="app_footer">H-Sync • Smart Companion for Honda RoadSync • Created by @mrz92</string>
+    <string name="app_author">by rifqyzakaria</string>
+    <string name="app_footer">H-Sync • Smart Companion for Honda RoadSync • rifqyzakaria</string>
     <string name="official_source_desc">Official Source: github.com/rifqyzakaria/MotoCompanion</string>
-    <string name="badge_verified_author">🛡️ @mrz92 OFFICIAL</string>
+    <string name="badge_verified_author">rifqyzakaria (Official)</string>
 
     <!-- Status Badges -->
     <string name="status_active">🟢 ACTIVE</string>
@@ -101,14 +101,24 @@
     <string name="btn_configure">Setup</string>
     <string name="current_version_format">Current Version: v%1$s</string>
     <string name="btn_check_update">Check GitHub Updates</string>
-    <string name="toast_checking_update">Checking for updates from official GitHub source (@mrz92)...</string>
-    <string name="update_dialog_title">Official Update: %1$s (@mrz92)</string>
-    <string name="update_dialog_message">A new official release by @mrz92 is available on GitHub!\n\nChangelog:\n%1$s\n\nDownload and install official update now?</string>
+    <string name="toast_checking_update">Checking for updates from official GitHub source...</string>
+    <string name="update_dialog_title">Official Update: %1$s</string>
+    <string name="update_dialog_message">A new official release is available on GitHub!\n\nChangelog:\n%1$s\n\nDownload and install official update now?</string>
     <string name="update_dialog_btn_download">Update Now</string>
     <string name="update_dialog_btn_later">Later</string>
     <string name="update_downloading_title">Downloading Official Update</string>
-    <string name="update_downloading_message">Downloading version %1$s from official @mrz92 repository...</string>
-    <string name="update_up_to_date">Application is up to date (%1$s) by @mrz92</string>
+    <string name="update_downloading_message">Downloading version %1$s from official repository...</string>
+    <string name="update_up_to_date">Application is up to date (%1$s)</string>
+
+    <!-- Android Auto Integration -->
+    <string name="status_android_auto_active">Car Connected (Android Auto) • H-Sync Standby</string>
+    <string name="status_android_auto_toast">🚗 Connected to Car (Android Auto). H-Sync paused.</string>
+
+    <!-- Handlebar HUD Mode -->
+    <string name="hud_music_no_track">No track currently playing</string>
+    <string name="hud_music_ready">Ready to Play</string>
+    <string name="hud_compass_mode_sensor">Phone Sensor</string>
+    <string name="hud_compass_mode_gps">GPS Vector</string>
 
     <!-- Dialogs & Bike Guide (Symmetrical & Clean) -->
     <string name="guide_title">🏍️ Honda RoadSync Connection Guide</string>

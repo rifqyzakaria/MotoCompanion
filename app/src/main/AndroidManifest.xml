@@ -214,6 +214,17 @@
             </intent-filter>
         </receiver>
 
+        <!-- Car Connection Receiver: Automatically pauses H-Sync when connected to Android Auto -->
+        <receiver
+            android:name=".receiver.CarConnectionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.car.app.connection.action.CAR_CONNECTION_UPDATED" />
+                <action android:name="android.app.action.ENTER_CAR_MODE" />
+                <action android:name="android.app.action.EXIT_CAR_MODE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

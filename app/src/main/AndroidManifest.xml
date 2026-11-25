@@ -5,9 +5,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
-    <!-- Location for GPS Bearing Stabilization and Speedometer -->
+    <!-- Location for Realtime Google Maps GPS Lock, Bearing Stabilization and Speedometer -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+    <!-- Contacts Permission to resolve WhatsApp Caller Name instead of Phone Number -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- Foreground services to prevent Android from killing app during rides -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -31,10 +38,11 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <queries>
-        <!-- Honda RoadSync App Packages -->
+        <!-- Honda RoadSync & Google Maps Packages -->
         <package android:name="com.honda.ms.dm.sab" />
         <package android:name="com.honda.ms.hsvcs" />
         <package android:name="com.honda.auto.hsvcs" />
+        <package android:name="com.google.android.apps.maps" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="audio/*" />
@@ -204,13 +212,14 @@
             </intent-filter>
         </receiver>
 
-        <!-- Bluetooth Connection Receiver for Auto-Start on Honda PCX / Intercom -->
+        <!-- Bluetooth Connection Receiver for Auto-Start & 20% Music Volume on Honda Headunit -->
         <receiver
             android:name=".receiver.BluetoothConnectionReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
                 <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
+                <action android:name="android.bluetooth.a2dp.profile.action.CONNECTION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 

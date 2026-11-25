@@ -11,8 +11,8 @@ android {
         applicationId = "com.spotify.music"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.6.0"
+        versionCode = 13
+        versionName = "1.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,4 +66,5 @@ dependencies {
     implementation("androidx.media:media:1.7.0")
     implementation("androidx.lifecycle:lifecycle-service:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 }

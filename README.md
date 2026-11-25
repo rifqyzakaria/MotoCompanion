@@ -8,7 +8,21 @@ Aplikasi resmi ini dipelihara dan ditandatangani langsung oleh **rifqyzakaria** 
 
 ## 🚀 Fitur Utama
 
-1. **Mode HUD Stang Baru & Kompas Sensor Gerak HP (`HudActivity`)**
+1. **Modal Software Update Modern (Frosted Dark UI)**
+   - Desain notifikasi pembaruan elegan dengan pengunduhan otomatis di latar belakang, bilah progres tipis, tampilan *What's new* yang rapi, serta tombol instan *Pasang Sekarang / Nanti*.
+
+2. **Volume Musik Otomatis 20% Saat Terhubung ke Headunit Motor**
+   - Menurunkan volume pemutar musik (`STREAM_MUSIC`) ke **20%** secara otomatis saat ponsel tersambung ke Headunit motor / Bluetooth A2DP sehingga suara navigasi dan intercom terdengar jernih tanpa tertutup musik keras.
+
+3. **Integrasi WhatsApp Cerdas (Pesan Ikuti RoadSync & Panggilan Baca Nama Kontak)**
+   - **Pesan Teks WhatsApp**: Sepenuhnya mengikuti pengaturan pembaca pesan pada aplikasi **Honda RoadSync** tanpa bentrok suara ganda.
+   - **Panggilan Masuk WhatsApp**: Mencocokkan nomor penelepon langsung ke buku telepon HP (`ContactsContract`) agar yang terbaca/tampil saat terhubung ke Headunit motor adalah **Nama Kontak** (bukan deretan angka nomor telepon).
+
+4. **GPS Realtime Google Maps & Anti-"Mengubah Rute" (`FusedLocationProvider` + `GnssStatus`)**
+   - Mengaktifkan engine lokasi realtime Google Play Services (`maxUpdateDelayMillis = 0ms`) + injeksi cepat satelit A-GPS begitu terhubung ke Headunit motor sehingga GPS langsung *lock* di latar belakang.
+   - Mencegah keterlambatan notifikasi belokan (*Turn-by-Turn*) serta dilengkapi filter anti-multipath & pengunci arah kecepatan rendah agar Google Maps / RoadSync tidak terus-menerus *"Mengubah rute"*.
+
+5. **Mode HUD Stang Baru & Kompas Sensor Gerak HP (`HudActivity`)**
    - Kompas kini responsif mengikuti gerak, putaran, dan orientasi fisik HP secara *real-time* dengan animasi perputaran jarum yang halus (*smooth dampening*).
    - Menggabungkan sensor orientasi HP saat berhenti/kecepatan rendah dan vektor arah GPS saat melaju kencang (> 15 km/jam) untuk akurasi maksimal.
 

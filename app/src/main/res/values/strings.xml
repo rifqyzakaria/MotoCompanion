@@ -39,6 +39,10 @@
     <string name="switch_hsync_music_desc_off">Nonaktif: RoadSync dapat memilih pemutar bawaan (Spotify asli, YT Music, VLC, dll.)</string>
     <string name="toast_hsync_music_on">Pemutar musik H-Sync diaktifkan untuk Honda RoadSync</string>
     <string name="toast_hsync_music_off">Pemutar musik H-Sync dinonaktifkan (RoadSync kini dapat memakai Spotify/YT Music/VLC)</string>
+    <string name="switch_auto_volume_20_title">Volume Musik Otomatis 20% (Headunit)</string>
+    <string name="switch_auto_volume_20_desc">Turunkan volume musik ke 20% saat terkoneksi ke Headunit motor</string>
+    <string name="toast_auto_volume_on">Volume musik otomatis 20% saat connect Headunit diaktifkan</string>
+    <string name="toast_auto_volume_off">Volume musik otomatis 20% dinonaktifkan</string>
     <string name="label_selected_player">Pemutar Terpilih</string>
     <string name="btn_change">Ganti</string>
     <string name="no_music_playing">🎵 Belum ada lagu yang diputar</string>
@@ -54,14 +58,22 @@
     <string name="toast_cmd_sent_play_pause">⏯ Play/Pause dikirim ke %1$s</string>
     <string name="toast_cmd_sent_next">Next ⏭ dikirim ke %1$s</string>
 
-    <!-- Announcer Section -->
-    <string name="section_announcer">PENGUMUM SUARA &amp; INTERCOM</string>
-    <string name="toggle_whatsapp_calls">Umumkan Panggilan Suara WhatsApp</string>
-    <string name="toggle_whatsapp_calls_sub">Sebut nama pemanggil saat motor berjalan</string>
+    <!-- Announcer & Realtime GPS Section -->
+    <string name="section_announcer">PANGGILAN WA, INTERCOM &amp; GPS REALTIME</string>
+    <string name="toggle_whatsapp_calls">Panggilan Masuk WhatsApp (Nama Kontak)</string>
+    <string name="toggle_whatsapp_calls_sub">Sebut nama kontak asli (bukan nomor) saat terhubung ke Headunit motor</string>
     <string name="toggle_whatsapp_messages">Bacakan Pesan WhatsApp Masuk</string>
     <string name="toggle_whatsapp_messages_sub">Bacakan isi chat pesan WA ke helm intercom</string>
-    <string name="toggle_gps_stabilizer">Kunci Arah GPS (Anti-Peta Berputar)</string>
-    <string name="toggle_gps_stabilizer_sub">Kunci arah kompas agar peta tidak berputar</string>
+    <string name="info_whatsapp_messages_roadsync_title">Baca Pesan Chat WhatsApp</string>
+    <string name="info_whatsapp_messages_roadsync_sub">Mengikuti pengaturan pembaca pesan pada aplikasi Honda RoadSync</string>
+    <string name="badge_follows_roadsync">ROADSYNC</string>
+    <string name="wa_call_banner_title">Panggilan Masuk WhatsApp</string>
+    <string name="toggle_gps_stabilizer">GPS Realtime Google Maps &amp; Anti-Ubah Rute</string>
+    <string name="toggle_gps_stabilizer_sub">Lock GPS instan di background agar notifikasi Turn-by-Turn tepat waktu &amp; tidak sering mengubah rute</string>
+    <string name="gps_notif_title">H-Sync GPS Realtime (Google Maps)</string>
+    <string name="gps_notif_locking">Mengunci satelit GPS realtime untuk Headunit...</string>
+    <string name="gps_notif_locked_format">GPS Terkunci (±%2$dm) • %1$d km/j • %3$s</string>
+    <string name="gps_notif_searching_format">Menstabilkan sinyal GPS (±%1$dm)...</string>
     <string name="btn_test_intercom">Tes Intercom</string>
     <string name="btn_test_call">Tes Panggilan WA</string>
     <string name="toast_testing_voice">Mengirim suara tes ke intercom/headset...</string>
@@ -95,13 +107,26 @@
     <string name="status_granted_battery">Tidak Dibatasi (Latar belakang aman)</string>
     <string name="status_grant_battery_hint">Pilih \'Tidak Dibatasi\' agar GPS tidak tertidur</string>
     <string name="status_granted_location">Izin GPS Aktif</string>
-    <string name="status_grant_location_hint">Perlu izin GPS untuk speedometer &amp; arah</string>
+    <string name="status_granted_location_bg">Realtime Background Aktif</string>
+    <string name="status_grant_location_bg_hint">Pilih \'Sepanjang Waktu\' agar GPS langsung lock di saku</string>
+    <string name="status_grant_location_hint">Perlu izin GPS untuk Turn-by-Turn &amp; anti-ubah rute</string>
+    <string name="btn_allow_always">Selalu</string>
+    <string name="status_contacts_access">Izin Kontak (WA)</string>
+    <string name="status_granted_contacts">Aktif (Baca Nama Kontak)</string>
+    <string name="status_grant_contacts_hint">Izinkan agar membaca Nama Kontak, bukan nomor</string>
     <string name="btn_grant">Aktifkan</string>
     <string name="btn_granted">Sudah Aktif</string>
     <string name="btn_configure">Atur</string>
     <string name="current_version_format">Versi Saat Ini: v%1$s</string>
     <string name="btn_check_update">Periksa Pembaruan GitHub</string>
     <string name="toast_checking_update">Memeriksa rilis terbaru dari sumber resmi GitHub...</string>
+    <string name="update_modal_title">Pembaruan Aplikasi</string>
+    <string name="update_whats_new">Apa yang baru</string>
+    <string name="update_downloading_format">Mengunduh H-Sync %1$s...</string>
+    <string name="update_ready_format">H-Sync %1$s siap dipasang.</string>
+    <string name="update_failed_format">Gagal mengunduh H-Sync %1$s.</string>
+    <string name="update_btn_install_now">Pasang Sekarang</string>
+    <string name="update_btn_retry">Coba Lagi</string>
     <string name="update_dialog_title">Pembaruan Resmi: %1$s</string>
     <string name="update_dialog_message">Versi resmi terbaru telah tersedia di GitHub!\n\nCatatan Pembaruan:\n%1$s\n\nUnduh dan pasang pembaruan resmi sekarang?</string>
     <string name="update_dialog_btn_download">Perbarui Sekarang</string>

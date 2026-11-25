@@ -39,6 +39,10 @@
     <string name="switch_hsync_music_desc_off">Disabled: RoadSync can use other whitelisted players (native Spotify, YT Music, VLC, etc.)</string>
     <string name="toast_hsync_music_on">H-Sync music player enabled for Honda RoadSync</string>
     <string name="toast_hsync_music_off">H-Sync music player disabled (RoadSync can now use Spotify/YT Music/VLC)</string>
+    <string name="switch_auto_volume_20_title">Auto 20% Music Volume (Headunit)</string>
+    <string name="switch_auto_volume_20_desc">Lower music volume to 20% when connected to motorcycle Headunit</string>
+    <string name="toast_auto_volume_on">Auto 20% music volume on Headunit connect enabled</string>
+    <string name="toast_auto_volume_off">Auto 20% music volume disabled</string>
     <string name="label_selected_player">Selected Player</string>
     <string name="btn_change">Change</string>
     <string name="no_music_playing">🎵 No track playing</string>
@@ -54,14 +58,22 @@
     <string name="toast_cmd_sent_play_pause">⏯ Play/Pause sent to %1$s</string>
     <string name="toast_cmd_sent_next">Next ⏭ sent to %1$s</string>
 
-    <!-- Announcer Section -->
-    <string name="section_announcer">VOICE ANNOUNCER &amp; INTERCOM</string>
-    <string name="toggle_whatsapp_calls">Announce WhatsApp Voice Calls</string>
-    <string name="toggle_whatsapp_calls_sub">Speak caller name while riding</string>
+    <!-- Announcer & Realtime GPS Section -->
+    <string name="section_announcer">WA CALLS, INTERCOM &amp; REALTIME GPS</string>
+    <string name="toggle_whatsapp_calls">WhatsApp Incoming Calls (Contact Name)</string>
+    <string name="toggle_whatsapp_calls_sub">Read saved Contact Name (not phone number) when connected to Headunit</string>
     <string name="toggle_whatsapp_messages">Read Incoming WhatsApp Messages</string>
     <string name="toggle_whatsapp_messages_sub">Read incoming WA chat messages into helmet intercom</string>
-    <string name="toggle_gps_stabilizer">Lock GPS Bearing (Anti-Spin Map)</string>
-    <string name="toggle_gps_stabilizer_sub">Stabilize compass bearing so maps do not spin</string>
+    <string name="info_whatsapp_messages_roadsync_title">WhatsApp Chat Messages</string>
+    <string name="info_whatsapp_messages_roadsync_sub">Follows message reading settings in the Honda RoadSync app</string>
+    <string name="badge_follows_roadsync">ROADSYNC</string>
+    <string name="wa_call_banner_title">Incoming WhatsApp Call</string>
+    <string name="toggle_gps_stabilizer">Realtime Google Maps GPS &amp; Anti-Reroute</string>
+    <string name="toggle_gps_stabilizer_sub">Instant background GPS lock for on-time Turn-by-Turn &amp; reduced rerouting</string>
+    <string name="gps_notif_title">H-Sync Realtime GPS (Google Maps)</string>
+    <string name="gps_notif_locking">Locking realtime GPS satellites for Headunit...</string>
+    <string name="gps_notif_locked_format">GPS Locked (±%2$dm) • %1$d km/h • %3$s</string>
+    <string name="gps_notif_searching_format">Stabilizing GPS signal (±%1$dm)...</string>
     <string name="btn_test_intercom">Test Intercom</string>
     <string name="btn_test_call">Test WA Call</string>
     <string name="toast_testing_voice">Sending test audio to intercom/headset...</string>
@@ -95,13 +107,26 @@
     <string name="status_granted_battery">Unrestricted (Background safe)</string>
     <string name="status_grant_battery_hint">Select \'Unrestricted\' so GPS stays active</string>
     <string name="status_granted_location">GPS Permission Active</string>
-    <string name="status_grant_location_hint">GPS permission needed for speedometer &amp; bearing</string>
+    <string name="status_granted_location_bg">Realtime Background Active</string>
+    <string name="status_grant_location_bg_hint">Select \'Allow all the time\' for instant pocket GPS lock</string>
+    <string name="status_grant_location_hint">GPS permission needed for Turn-by-Turn &amp; anti-reroute</string>
+    <string name="btn_allow_always">Always</string>
+    <string name="status_contacts_access">Contacts (WA Caller)</string>
+    <string name="status_granted_contacts">Active (Contact Name)</string>
+    <string name="status_grant_contacts_hint">Allow to read Contact Name instead of phone number</string>
     <string name="btn_grant">Enable</string>
     <string name="btn_granted">Active</string>
     <string name="btn_configure">Setup</string>
     <string name="current_version_format">Current Version: v%1$s</string>
     <string name="btn_check_update">Check GitHub Updates</string>
     <string name="toast_checking_update">Checking for updates from official GitHub source...</string>
+    <string name="update_modal_title">Software Update</string>
+    <string name="update_whats_new">What\'s new</string>
+    <string name="update_downloading_format">Downloading H-Sync %1$s...</string>
+    <string name="update_ready_format">H-Sync %1$s is ready to install.</string>
+    <string name="update_failed_format">Failed to download H-Sync %1$s.</string>
+    <string name="update_btn_install_now">Install Now</string>
+    <string name="update_btn_retry">Retry</string>
     <string name="update_dialog_title">Official Update: %1$s</string>
     <string name="update_dialog_message">A new official release is available on GitHub!\n\nChangelog:\n%1$s\n\nDownload and install official update now?</string>
     <string name="update_dialog_btn_download">Update Now</string>

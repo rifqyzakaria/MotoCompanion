@@ -64,6 +64,14 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
          */
         @Volatile
         var sharedMediaSession: MediaSessionCompat? = null
+
+        @Volatile
+        var activeIncomingCallerName: String? = null
+            private set
+
+        fun setIncomingWhatsAppCaller(callerName: String?) {
+            activeIncomingCallerName = callerName
+        }
     }
 
     private lateinit var mediaSession: MediaSessionCompat
@@ -692,6 +700,28 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
     }
 
     fun syncExternalPlayer() {
+        val incomingCaller = activeIncomingCallerName
+        if (!incomingCaller.isNullOrBlank()) {
+            val callTitle = "📞 $incomingCaller"
+            val callSubtitle = getString(R.string.wa_call_banner_title)
+            if (callTitle != lastSyncedTitle || callSubtitle != lastSyncedArtist) {
+                lastSyncedTitle = callTitle
+                lastSyncedArtist = callSubtitle
+                val callMeta = MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ITEM_STREAM_ID)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, callTitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, callSubtitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "WhatsApp")
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, callTitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, callSubtitle)
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 60000L)
+                    .build()
+                mediaSession.setMetadata(callMeta)
+                broadcastSpotifyState(callTitle, callSubtitle, "WhatsApp", true, 60000L, 0L)
+            }
+            return
+        }
+
         val trackInfo = MediaControlDispatcher.getActiveTrackInfo(this) ?: return
         val selectedName = MediaControlDispatcher.getSelectedName(this)
 
@@ -748,6 +778,9 @@ open class MediaSessionService : MediaBrowserServiceCompat() {
             return null
         }
         Log.i(tag, "MediaBrowser client connected: $clientPackageName")
+        if (RoadSyncBridge.KNOWN_ROADSYNC_PACKAGES.contains(clientPackageName)) {
+            RoadSyncBridge.startAllServices(this, "MediaBrowser RoadSync ($clientPackageName)")
+        }
         val selectedPkg = MediaControlDispatcher.getSelectedPackage(this)
         if (selectedPkg != MediaControlDispatcher.INTERNAL_PACKAGE_ID) {
             syncExternalPlayer()

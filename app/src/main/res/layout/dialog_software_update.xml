@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootUpdateModal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
+    android:background="@drawable/bg_software_update_dialog"
+    android:orientation="vertical">
+
+    <!-- Header Section: Centered Title, Subtitle & Sleek Progress Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="22dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="22dp">
+
+        <TextView
+            android:id="@+id/tvUpdateModalTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:text="@string/update_modal_title"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/tvUpdateModalSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="Downloading H-Sync..."
+            android:textColor="#AEAEB2"
+            android:textSize="12.5sp" />
+
+        <ProgressBar
+            android:id="@+id/progressUpdateBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3.5dp"
+            android:layout_marginTop="14dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/bg_update_progress_bar" />
+    </LinearLayout>
+
+    <!-- What's New Section Header -->
+    <TextView
+        android:id="@+id/tvWhatsNewLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:text="@string/update_whats_new"
+        android:textColor="#98989F"
+        android:textSize="12sp" />
+
+    <!-- Subtle Hairline Under What's New (Shown in Ready State) -->
+    <View
+        android:id="@+id/dividerWhatsNew"
+        android:layout_width="match_parent"
+        android:layout_height="0.8dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="22dp"
+        android:background="#22FFFFFF"
+        android:visibility="gone" />
+
+    <!-- Scrollable Rich Changelog Container with Smooth Vertical Fade -->
+    <ScrollView
+        android:id="@+id/scrollUpdateChangelog"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginTop="6dp"
+        android:fadingEdgeLength="24dp"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingStart="22dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="14dp"
+        android:requiresFadingEdge="vertical"
+        android:scrollbars="none">
+
+        <TextView
+            android:id="@+id/tvUpdateChangelog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="3dp"
+            android:textColor="#F2F2F7"
+            android:textColorLink="#409CFF"
+            android:textSize="13.5sp" />
+    </ScrollView>
+
+    <!-- Top Action Hairline Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.8dp"
+        android:background="#29FFFFFF" />
+
+    <!-- State 1: Downloading Action (Single Full-Width Cancel Button) -->
+    <LinearLayout
+        android:id="@+id/layoutDownloadingActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/btnUpdateCancel"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:text="@string/btn_cancel"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- State 2: Ready to Install / Retry Actions (Stacked Full-Width Install Now & Later) -->
+    <LinearLayout
+        android:id="@+id/layoutReadyActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/btnUpdateInstallNow"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/update_btn_install_now"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:background="#29FFFFFF" />
+
+        <TextView
+            android:id="@+id/btnUpdateLater"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:text="@string/update_dialog_btn_later"
+            android:textColor="#EBEBF5"
+            android:textSize="15.5sp" />
+    </LinearLayout>
+
+</LinearLayout>

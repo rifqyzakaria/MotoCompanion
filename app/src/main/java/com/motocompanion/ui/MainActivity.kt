@@ -14,7 +14,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
-import android.util.Log
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -24,9 +23,9 @@ import com.motocompanion.App
 import com.motocompanion.BuildConfig
 import com.motocompanion.R
 import com.motocompanion.databinding.ActivityMainBinding
-import com.motocompanion.service.GpsTrackingService
 import com.motocompanion.service.NotificationAnnouncerService
 import com.motocompanion.update.AppUpdateManager
+import com.motocompanion.util.ContactNameResolver
 import com.motocompanion.util.LocaleThemeManager
 import com.motocompanion.util.MediaControlDispatcher
 import com.motocompanion.util.RoadSyncBridge
@@ -34,7 +33,8 @@ import com.motocompanion.util.RoadSyncBridge
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val locationPermissionReqCode = 101
+    private val runtimePermissionReqCode = 101
+    private val backgroundLocationReqCode = 102
 
     private val trackUpdateHandler = Handler(Looper.getMainLooper())
     private val trackUpdateRunnable = object : Runnable {
@@ -60,10 +60,13 @@ class MainActivity : AppCompatActivity() {
         updateThemeAndLanguageUi()
         updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
 
-        // Periksa pembaruan di latar belakang saat aplikasi dibuka
+        // Minta izin esensial (Lokasi, Kontak untuk nama penelepon WA, Bluetooth, Notifikasi) bila belum aktif
+        requestEssentialPermissionsIfNeeded()
+
+        // Periksa pembaruan di latar belakang saat aplikasi dibuka (menampilkan modal Software Update baru)
         AppUpdateManager.checkForUpdates(this, showUpToDateToast = false)
 
-        // Otomatis aktifkan hanya jika motor Honda / helm sedang terhubung
+        // Otomatis aktifkan hanya jika motor Honda / helm benar-benar sedang terhubung aktif
         val isBikeConnected = RoadSyncBridge.getConnectedDeviceName(this) != null
         if (isBikeConnected) {
             RoadSyncBridge.startAllServices(this, "MainActivity OnCreate with Connected Bike")
@@ -109,8 +112,21 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {}
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        updatePermissionStatuses()
+        if (RoadSyncBridge.isRoadSyncActive || RoadSyncBridge.getConnectedDeviceName(this) != null) {
+            if (hasLocationPermission() && RoadSyncBridge.isGpsRealtimeEnabled(this)) {
+                RoadSyncBridge.startGpsService(this, boostNavigation = true)
+            }
+        }
+    }
+
     private fun setupListeners() {
-        // Integrasi Pendamping Honda RoadSync
         binding.btnLaunchRoadSync.setOnClickListener {
             val launched = RoadSyncBridge.launchRoadSync(this)
             if (!launched) {
@@ -157,7 +173,17 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
-        // Kontrol Cepat Pemutar Media Terpilih (Dashboard Utama)
+        // Switch Volume Musik Otomatis 20% saat Terhubung ke Headunit Motor
+        binding.switchAutoVolume20.setOnCheckedChangeListener { _, isChecked ->
+            RoadSyncBridge.setAutoVolume20Enabled(this, isChecked)
+            Toast.makeText(
+                this,
+                if (isChecked) getString(R.string.toast_auto_volume_on) else getString(R.string.toast_auto_volume_off),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        // Kontrol Cepat Pemutar Media Terpilih
         binding.btnMainPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
             val name = MediaControlDispatcher.getSelectedName(this)
@@ -179,7 +205,6 @@ class MainActivity : AppCompatActivity() {
             trackUpdateHandler.postDelayed({ updateTrackInfoUi() }, 400)
         }
 
-        // Pengaturan & Pemilihan Pemutar Media
         binding.btnChangePlayer.setOnClickListener {
             startActivity(Intent(this, PlayerSelectorActivity::class.java))
         }
@@ -201,7 +226,7 @@ class MainActivity : AppCompatActivity() {
             showThemeDialog()
         }
 
-        // Pembaruan Aplikasi GitHub Resmi (@mrz92)
+        // Pembaruan Aplikasi GitHub Resmi (rifqyzakaria)
         binding.btnCheckUpdate.setOnClickListener {
             Toast.makeText(this, getString(R.string.toast_checking_update), Toast.LENGTH_SHORT).show()
             AppUpdateManager.checkForUpdates(this, showUpToDateToast = true)
@@ -223,9 +248,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Izin Lokasi
+        // Izin Lokasi (Termasuk Lokasi Latar Belakang "Sepanjang Waktu" untuk GPS Realtime Headunit)
         binding.btnGrantLocation.setOnClickListener {
-            requestLocationPermission()
+            if (!hasLocationPermission()) {
+                requestLocationPermission()
+            } else if (!hasBackgroundLocationPermission()) {
+                requestBackgroundLocationPermission()
+            }
+        }
+
+        // Izin Kontak (Untuk membaca Nama Kontak saat ada panggilan WhatsApp masuk)
+        binding.btnGrantContacts.setOnClickListener {
+            requestContactsPermission()
         }
 
         // Preferences Switches
@@ -233,17 +267,15 @@ class MainActivity : AppCompatActivity() {
 
         binding.switchWaCalls.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_CALLS, isChecked).apply()
-        }
-
-        binding.switchWaMessages.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_MESSAGES, isChecked).apply()
+            if (isChecked && !ContactNameResolver.hasReadContactsPermission(this)) {
+                requestContactsPermission()
+            }
         }
 
         binding.switchGpsStabilizer.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                startGpsService()
-            } else {
-                stopService(Intent(this, GpsTrackingService::class.java))
+            RoadSyncBridge.setGpsRealtimeEnabled(this, isChecked)
+            if (isChecked && !hasLocationPermission()) {
+                requestLocationPermission()
             }
         }
 
@@ -260,10 +292,10 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.toast_testing_call), Toast.LENGTH_SHORT).show()
         }
 
-        // Buka Layar Kendara
+        // Buka Layar Kendara HUD
         binding.btnOpenHud.setOnClickListener {
             if (hasLocationPermission()) {
-                startGpsService()
+                RoadSyncBridge.startGpsService(this, boostNavigation = true)
                 startActivity(Intent(this, HudActivity::class.java))
             } else {
                 requestLocationPermission()
@@ -448,6 +480,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.switchAutoStartCompanion.isChecked = RoadSyncBridge.isAutoStartEnabled(this)
+        binding.switchAutoVolume20.isChecked = RoadSyncBridge.isAutoVolume20Enabled(this)
     }
 
     private fun updateActivePlayerName() {
@@ -475,7 +508,8 @@ class MainActivity : AppCompatActivity() {
     private fun loadPreferences() {
         val prefs = getSharedPreferences(NotificationAnnouncerService.PREFS_NAME, Context.MODE_PRIVATE)
         binding.switchWaCalls.isChecked = prefs.getBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_CALLS, true)
-        binding.switchWaMessages.isChecked = prefs.getBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_MESSAGES, false)
+        binding.switchAutoVolume20.isChecked = RoadSyncBridge.isAutoVolume20Enabled(this)
+        binding.switchGpsStabilizer.isChecked = RoadSyncBridge.isGpsRealtimeEnabled(this)
     }
 
     private fun updatePermissionStatuses() {
@@ -511,18 +545,60 @@ class MainActivity : AppCompatActivity() {
             binding.btnGrantBattery.isEnabled = true
         }
 
-        // 3. Cek Location
-        if (hasLocationPermission()) {
-            binding.tvLocationStatus.text = getString(R.string.status_granted_location)
+        // 3. Cek Location & Background Location
+        if (hasLocationPermission() && hasBackgroundLocationPermission()) {
+            binding.tvLocationStatus.text = getString(R.string.status_granted_location_bg)
             binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
             binding.btnGrantLocation.text = getString(R.string.btn_granted)
             binding.btnGrantLocation.isEnabled = false
-            startGpsService()
+        } else if (hasLocationPermission()) {
+            binding.tvLocationStatus.text = getString(R.string.status_grant_location_bg_hint)
+            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+            binding.btnGrantLocation.text = getString(R.string.btn_allow_always)
+            binding.btnGrantLocation.isEnabled = true
         } else {
             binding.tvLocationStatus.text = getString(R.string.status_grant_location_hint)
             binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
             binding.btnGrantLocation.text = getString(R.string.btn_configure)
             binding.btnGrantLocation.isEnabled = true
+        }
+
+        // 4. Cek Contacts Permission (Nama Penelepon WA)
+        if (ContactNameResolver.hasReadContactsPermission(this)) {
+            binding.tvContactsStatus.text = getString(R.string.status_granted_contacts)
+            binding.tvContactsStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.btnGrantContacts.text = getString(R.string.btn_granted)
+            binding.btnGrantContacts.isEnabled = false
+        } else {
+            binding.tvContactsStatus.text = getString(R.string.status_grant_contacts_hint)
+            binding.tvContactsStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.btnGrantContacts.text = getString(R.string.btn_configure)
+            binding.btnGrantContacts.isEnabled = true
+        }
+    }
+
+    private fun requestEssentialPermissionsIfNeeded() {
+        val missing = mutableListOf<String>()
+        if (!hasLocationPermission()) {
+            missing.add(Manifest.permission.ACCESS_FINE_LOCATION)
+            missing.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+        if (!ContactNameResolver.hasReadContactsPermission(this)) {
+            missing.add(Manifest.permission.READ_CONTACTS)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                missing.add(Manifest.permission.BLUETOOTH_CONNECT)
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                missing.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), runtimePermissionReqCode)
         }
     }
 
@@ -538,6 +614,17 @@ class MainActivity : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun hasBackgroundLocationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
     private fun requestLocationPermission() {
         ActivityCompat.requestPermissions(
             this,
@@ -545,18 +632,25 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ),
-            locationPermissionReqCode
+            runtimePermissionReqCode
         )
     }
 
-    private fun startGpsService() {
-        if (hasLocationPermission()) {
-            val serviceIntent = Intent(this, GpsTrackingService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
+    private fun requestBackgroundLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                backgroundLocationReqCode
+            )
         }
+    }
+
+    private fun requestContactsPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.READ_CONTACTS),
+            runtimePermissionReqCode
+        )
     }
 }

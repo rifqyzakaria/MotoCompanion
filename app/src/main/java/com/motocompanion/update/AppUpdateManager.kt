@@ -270,7 +270,7 @@ object AppUpdateManager {
                     conn.inputStream.use { input ->
                         FileOutputStream(partApkFile).use { output ->
                             val buffer = ByteArray(8192)
-                            var bytesRead: Int
+                            var bytesRead = 0
                             var totalRead = 0L
 
                             while (!isCancelled.get() && input.read(buffer).also { bytesRead = it } != -1) {

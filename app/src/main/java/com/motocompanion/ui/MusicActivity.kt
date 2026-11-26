@@ -15,6 +15,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.motocompanion.R
 import com.motocompanion.databinding.ActivityMusicBinding
 import com.motocompanion.databinding.ItemSongBinding
 import com.motocompanion.model.Song
@@ -51,7 +52,7 @@ class MusicActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = SongAdapter(songs) { song, index ->
+        adapter = SongAdapter(songs) { _, index ->
             MediaSessionService.currentIndex = index
             sendMediaAction(MediaSessionService.ACTION_PLAY)
         }
@@ -118,7 +119,13 @@ class MusicActivity : AppCompatActivity() {
             binding.tvCurrentPlayingArtist.text = current.artist
         }
 
-        binding.btnPlayPauseSong.text = if (MediaSessionService.isPlaying) "PAUSE" else "PLAY"
+        val playing = MediaSessionService.isPlaying
+        binding.btnPlayPauseSong.text = getString(
+            if (playing) R.string.btn_pause else R.string.btn_play
+        )
+        binding.btnPlayPauseSong.setIconResource(
+            if (playing) R.drawable.ic_pause else R.drawable.ic_play
+        )
     }
 
     override fun onResume() {

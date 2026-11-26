@@ -1,32 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Backgrounds -->
-    <color name="bg_dark">#F4F6F9</color>
+    <!-- 60% Neutral Architectural Surfaces (Light) -->
+    <color name="bg_dark">#F5F7FA</color>
     <color name="bg_card">#FFFFFF</color>
-    <color name="bg_card_secondary">#E9ECEF</color>
-    <color name="border_color">#D0D7DE</color>
+    <color name="bg_card_secondary">#EEF2F6</color>
+    <color name="peak_card_bg">#FFFFFF</color>
+    <color name="peak_inner_bg">#F1F5F9</color>
 
-    <!-- Accents (Deep contrast for light mode) -->
-    <color name="accent_cyan">#00838F</color>
-    <color name="accent_cyan_glow">#2000838F</color>
-    <color name="accent_green">#1A7F37</color>
-    <color name="accent_amber">#B76E00</color>
-    <color name="accent_red">#CF222E</color>
+    <!-- 30% Hairline Translucent Borders & High-Contrast Typography (WCAG AA >= 4.5:1) -->
+    <color name="border_color">#1A0F172A</color>
+    <color name="peak_border">#2E0369A1</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#475569</color>
+    <color name="text_muted">#64748B</color>
 
-    <!-- Typography -->
-    <color name="text_primary">#1F2328</color>
-    <color name="text_secondary">#57606A</color>
-    <color name="text_muted">#8C959F</color>
+    <!-- 10% Single Purposeful Precision Accent + Semantic Status Dots -->
+    <color name="accent_cyan">#0369A1</color>
+    <color name="accent_cyan_glow">#140369A1</color>
+    <color name="accent_green">#15803D</color>
+    <color name="accent_amber">#B45309</color>
+    <color name="accent_red">#B91C1C</color>
 
-    <!-- UI Elements -->
+    <!-- UI Chrome Tokens -->
     <color name="btn_text_on_cyan">#FFFFFF</color>
-    <color name="icon_circle_bg">#1A00838F</color>
-    <color name="icon_circle_stroke">#4D00838F</color>
+    <color name="icon_circle_bg">#120369A1</color>
+    <color name="icon_circle_stroke">#260369A1</color>
 
-    <!-- Handlebar HUD (Always dark OLED for night vision & safety) -->
-    <color name="hud_bg">#0D1117</color>
-    <color name="hud_text_primary">#F0F6FC</color>
-    <color name="hud_text_secondary">#8B949E</color>
-    <color name="hud_accent_cyan">#00E5FF</color>
-    <color name="hud_accent_green">#00E676</color>
+    <!-- Handlebar HUD (Dedicated OLED Instrument Cluster Palette) -->
+    <color name="hud_bg">#07090D</color>
+    <color name="hud_surface">#10141C</color>
+    <color name="hud_border">#1FFFFFFF</color>
+    <color name="hud_text_primary">#F8FAFC</color>
+    <color name="hud_text_secondary">#94A3B8</color>
+    <color name="hud_accent_cyan">#38BDF8</color>
+    <color name="hud_accent_green">#4ADE80</color>
 </resources>

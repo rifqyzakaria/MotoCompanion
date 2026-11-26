@@ -6,49 +6,60 @@
     android:background="@color/bg_dark"
     android:orientation="vertical">
 
-    <!-- Header -->
+    <!-- Quiet Top Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_card"
+        android:background="@color/bg_dark"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:paddingStart="12dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
 
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Kembali"
-            android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="@string/cd_back"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_left"
             app:tint="@color/text_primary" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="-0.02"
                 android:text="@string/selector_title"
                 android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="18sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:text="@string/selector_subtitle"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Subtitle / Filter Toggle -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/border_color" />
+
+    <!-- Filter Strip -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -56,13 +67,14 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="16dp"
-        android:paddingTop="10dp"
+        android:paddingTop="8dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="10dp">
+        android:paddingBottom="8dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
             android:layout_weight="1"
             android:text="@string/selector_switch_all"
             android:textColor="@color/text_secondary"
@@ -75,22 +87,31 @@
             android:checked="false" />
     </LinearLayout>
 
-    <!-- List of Players -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/border_color" />
+
+    <!-- Installed Players List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPlayers"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp" />
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp" />
 
-    <!-- Bottom Action Bar -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/border_color" />
+
+    <!-- Bottom Transport Verification Deck -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/bg_card"
-        android:elevation="8dp"
         android:orientation="vertical"
         android:padding="16dp">
 
@@ -99,58 +120,103 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
             android:maxLines="1"
-            android:text="Terpilih: -"
-            android:textColor="@color/accent_cyan"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:text="Active target: -"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLaunchPlayer"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1.15"
+                android:fontFamily="sans-serif-medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:text="@string/selector_btn_launch"
+                android:textAllCaps="false"
                 android:textColor="@color/text_primary"
-                app:strokeColor="@color/border_color" />
+                android:textSize="12sp"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_external_link"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="16dp"
+                app:iconTint="@color/text_secondary"
+                app:strokeColor="@color/border_color"
+                app:strokeWidth="1dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTestPrev"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="4dp"
-                android:text="◀"
-                android:textColor="@color/text_primary"
-                app:strokeColor="@color/border_color" />
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@string/btn_prev"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="44dp"
+                android:padding="0dp"
+                android:text=""
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_skip_prev"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="18dp"
+                app:iconTint="@color/text_primary"
+                app:strokeColor="@color/border_color"
+                app:strokeWidth="1dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTestPlayPause"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1.2"
+                android:layout_height="44dp"
+                android:layout_weight="1"
                 android:backgroundTint="@color/accent_cyan"
-                android:text="⏯ Play/Pause"
+                android:fontFamily="sans-serif-medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="@string/btn_play"
+                android:textAllCaps="false"
                 android:textColor="@color/btn_text_on_cyan"
-                android:textStyle="bold" />
+                android:textSize="13sp"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_play"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="18dp"
+                app:iconTint="@color/btn_text_on_cyan" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTestNext"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="4dp"
-                android:text="▶"
-                android:textColor="@color/text_primary"
-                app:strokeColor="@color/border_color" />
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/btn_next"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="44dp"
+                android:padding="0dp"
+                android:text=""
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_skip_next"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="18dp"
+                app:iconTint="@color/text_primary"
+                app:strokeColor="@color/border_color"
+                app:strokeWidth="1dp" />
         </LinearLayout>
     </LinearLayout>
 

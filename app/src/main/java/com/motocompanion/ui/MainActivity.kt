@@ -1,12 +1,14 @@
 package com.motocompanion.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,10 +17,14 @@ import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import com.motocompanion.App
 import com.motocompanion.BuildConfig
 import com.motocompanion.R
@@ -29,12 +35,14 @@ import com.motocompanion.util.ContactNameResolver
 import com.motocompanion.util.LocaleThemeManager
 import com.motocompanion.util.MediaControlDispatcher
 import com.motocompanion.util.RoadSyncBridge
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val runtimePermissionReqCode = 101
     private val backgroundLocationReqCode = 102
+    private val easeOutInterpolator = DecelerateInterpolator(1.6f)
 
     private val trackUpdateHandler = Handler(Looper.getMainLooper())
     private val trackUpdateRunnable = object : Runnable {
@@ -56,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupListeners()
+        setupScrollCraftTimeline()
+        setupTactileMicroInteractions()
         loadPreferences()
         updateThemeAndLanguageUi()
         updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
@@ -122,6 +132,115 @@ class MainActivity : AppCompatActivity() {
                 RoadSyncBridge.startGpsService(this)
             }
         }
+    }
+
+    /**
+     * Scroll-Craft Signature Move:
+     * Treats the scroll container as a 60fps timeline using strictly GPU-composited
+     * transform (translationY, scaleX, scaleY) and opacity (alpha) properties,
+     * with full accessibility fallback when system animations / reduced motion are active.
+     */
+    private fun setupScrollCraftTimeline() {
+        val headerFadeRangePx = dpToPx(48f)
+        val heroDepthRangePx = dpToPx(240f)
+
+        binding.scrollDashboard.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            val headerProgress = (scrollY / headerFadeRangePx).coerceIn(0f, 1f)
+            binding.headerDivider.alpha = headerProgress
+
+            if (isReducedMotionEnabled()) {
+                binding.headerBrandGroup.scaleX = 1f
+                binding.headerBrandGroup.scaleY = 1f
+                binding.cardHeroTelemetry.translationY = 0f
+                binding.cardHeroTelemetry.scaleX = 1f
+                binding.cardHeroTelemetry.scaleY = 1f
+                binding.cardHeroTelemetry.alpha = 1f
+                binding.cardPeakCockpit.scaleX = 1f
+                binding.cardPeakCockpit.scaleY = 1f
+                return@setOnScrollChangeListener
+            }
+
+            // Condense header brand subtly on scroll
+            val headerScale = 1f - (0.03f * headerProgress)
+            binding.headerBrandGroup.scaleX = headerScale
+            binding.headerBrandGroup.scaleY = headerScale
+
+            // Asymmetric Hero subtle depth recede (transform + opacity only)
+            val heroProgress = (scrollY / heroDepthRangePx).coerceIn(0f, 1f)
+            binding.cardHeroTelemetry.translationY = scrollY * 0.16f
+            val heroScale = 1f - (0.024f * heroProgress)
+            binding.cardHeroTelemetry.scaleX = heroScale
+            binding.cardHeroTelemetry.scaleY = heroScale
+            binding.cardHeroTelemetry.alpha = 1f - (0.28f * heroProgress)
+
+            // Single Engineered Peak focal presence as it enters viewport prime zone
+            val viewportHeight = binding.scrollDashboard.height
+            if (viewportHeight > 0 && binding.cardPeakCockpit.height > 0) {
+                val peakCenterY = (binding.cardPeakCockpit.top + binding.cardPeakCockpit.bottom) * 0.5f - scrollY
+                val viewportCenterY = viewportHeight * 0.5f
+                val normalizedDistance = (abs(peakCenterY - viewportCenterY) / (viewportHeight * 0.65f)).coerceIn(0f, 1f)
+                val peakFocusScale = 1f - (0.016f * normalizedDistance)
+                binding.cardPeakCockpit.scaleX = peakFocusScale
+                binding.cardPeakCockpit.scaleY = peakFocusScale
+            }
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupTactileMicroInteractions() {
+        val interactiveViews = listOf<View>(
+            binding.btnToggleCompanion,
+            binding.btnOpenHud,
+            binding.btnMainPrev,
+            binding.btnMainPlayPause,
+            binding.btnMainNext,
+            binding.cardLanguageTile,
+            binding.cardThemeTile,
+            binding.btnCheckUpdate
+        )
+
+        interactiveViews.forEach { target ->
+            target.setOnTouchListener { v, event ->
+                if (!isReducedMotionEnabled() && v.isEnabled) {
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN -> {
+                            v.animate()
+                                .scaleX(0.975f)
+                                .scaleY(0.975f)
+                                .setDuration(120L)
+                                .setInterpolator(easeOutInterpolator)
+                                .start()
+                        }
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                            v.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(160L)
+                                .setInterpolator(easeOutInterpolator)
+                                .start()
+                        }
+                    }
+                }
+                false
+            }
+        }
+    }
+
+    private fun isReducedMotionEnabled(): Boolean {
+        val scale = try {
+            Settings.Global.getFloat(
+                contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1.0f
+            )
+        } catch (_: Exception) {
+            1.0f
+        }
+        return scale == 0f
+    }
+
+    private fun dpToPx(dp: Float): Float {
+        return dp * resources.displayMetrics.density
     }
 
     private fun setupListeners() {
@@ -215,8 +334,14 @@ class MainActivity : AppCompatActivity() {
         binding.btnSelectLanguage.setOnClickListener {
             showLanguageDialog()
         }
+        binding.cardLanguageTile.setOnClickListener {
+            showLanguageDialog()
+        }
 
         binding.btnSelectTheme.setOnClickListener {
+            showThemeDialog()
+        }
+        binding.cardThemeTile.setOnClickListener {
             showThemeDialog()
         }
 
@@ -225,7 +350,6 @@ class MainActivity : AppCompatActivity() {
             AppUpdateManager.checkForUpdates(this, showUpToDateToast = true)
         }
 
-        // Izin Akses Notifikasi Honda RoadSync & H-Sync
         binding.btnGrantRoadSyncNotif.setOnClickListener {
             Toast.makeText(this, getString(R.string.toast_enable_roadsync_notif), Toast.LENGTH_LONG).show()
             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
@@ -318,9 +442,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateMusicPlayerSwitchUi(enabled: Boolean) {
         binding.switchHsyncMusic.isChecked = enabled
+        val targetAlpha = if (enabled) 1.0f else 0.42f
+        if (isReducedMotionEnabled()) {
+            binding.layoutMusicPlayerControls.alpha = targetAlpha
+        } else {
+            binding.layoutMusicPlayerControls.animate()
+                .alpha(targetAlpha)
+                .setDuration(160L)
+                .setInterpolator(easeOutInterpolator)
+                .start()
+        }
+
         if (enabled) {
             binding.tvHsyncMusicDesc.text = getString(R.string.switch_hsync_music_desc_on)
-            binding.layoutMusicPlayerControls.alpha = 1.0f
             binding.btnChangePlayer.isEnabled = true
             binding.btnMainPrev.isEnabled = true
             binding.btnMainPlayPause.isEnabled = true
@@ -329,7 +463,6 @@ class MainActivity : AppCompatActivity() {
             binding.btnOpenBuiltinMusic.isEnabled = true
         } else {
             binding.tvHsyncMusicDesc.text = getString(R.string.switch_hsync_music_desc_off)
-            binding.layoutMusicPlayerControls.alpha = 0.45f
             binding.btnChangePlayer.isEnabled = false
             binding.btnMainPrev.isEnabled = false
             binding.btnMainPlayPause.isEnabled = false
@@ -440,6 +573,14 @@ class MainActivity : AppCompatActivity() {
         updateRoadSyncUi()
     }
 
+    private fun setHeaderStatusPill(label: String, colorRes: Int, pillDrawableRes: Int) {
+        val color = ContextCompat.getColor(this, colorRes)
+        binding.tvHeaderStatusBadge.text = label
+        binding.tvHeaderStatusBadge.setTextColor(color)
+        ImageViewCompat.setImageTintList(binding.ivHeaderStatusDot, ColorStateList.valueOf(color))
+        binding.layoutHeaderStatusPill.setBackgroundResource(pillDrawableRes)
+    }
+
     private fun updateRoadSyncUi() {
         val isAndroidAuto = RoadSyncBridge.isAndroidAutoConnected(this)
         val isInstalled = RoadSyncBridge.isRoadSyncInstalled(this)
@@ -451,37 +592,47 @@ class MainActivity : AppCompatActivity() {
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
             binding.btnToggleCompanion.isEnabled = false
-            binding.tvHeaderStatusBadge.text = "🚗 MOBIL"
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
-            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill_pending)
+            setHeaderStatusPill(
+                getString(R.string.status_car_mode),
+                R.color.accent_amber,
+                R.drawable.bg_pill_pending
+            )
         } else if (isCompanionActive) {
             binding.btnToggleCompanion.isEnabled = true
             binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_active)
-            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_off)
             binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, R.color.accent_red))
-            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_red)
-            binding.tvHeaderStatusBadge.text = getString(R.string.status_active)
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill_active)
+            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_red)
+            setHeaderStatusPill(
+                getString(R.string.status_active),
+                R.color.accent_green,
+                R.drawable.bg_pill_active
+            )
         } else if (isInstalled) {
             binding.btnToggleCompanion.isEnabled = true
             binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_ready)
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
-            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            (binding.btnToggleCompanion as? com.google.android.material.button.MaterialButton)?.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_green)
-            binding.tvHeaderStatusBadge.text = getString(R.string.status_standby)
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
-            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill)
+            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_cyan)
+            setHeaderStatusPill(
+                getString(R.string.status_standby),
+                R.color.text_secondary,
+                R.drawable.bg_pill
+            )
         } else {
             binding.btnToggleCompanion.isEnabled = true
             binding.tvRoadSyncStatus.text = getString(R.string.roadsync_status_not_installed)
             binding.tvRoadSyncStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
             binding.btnToggleCompanion.text = getString(R.string.btn_turn_on)
-            binding.tvHeaderStatusBadge.text = getString(R.string.status_offline)
-            binding.tvHeaderStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
-            binding.tvHeaderStatusBadge.setBackgroundResource(R.drawable.bg_pill)
+            binding.btnToggleCompanion.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+            binding.btnToggleCompanion.strokeColor = ContextCompat.getColorStateList(this, R.color.accent_cyan)
+            setHeaderStatusPill(
+                getString(R.string.status_offline),
+                R.color.text_muted,
+                R.drawable.bg_pill
+            )
         }
 
         if (connectedDevice != null) {
@@ -489,7 +640,7 @@ class MainActivity : AppCompatActivity() {
             binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
         } else {
             binding.tvBluetoothDeviceName.text = getString(R.string.bt_waiting)
-            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.tvBluetoothDeviceName.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
         }
 
         binding.switchAutoStartCompanion.isChecked = RoadSyncBridge.isAutoStartEnabled(this)
@@ -505,16 +656,28 @@ class MainActivity : AppCompatActivity() {
     private fun updateTrackInfoUi() {
         val track = MediaControlDispatcher.getActiveTrackInfo(this)
         if (track != null && track.title.isNotBlank()) {
-            binding.tvActiveTrackInfo.text = "🎵 ${track.title} • ${track.artist}"
+            binding.tvActiveTrackInfo.text = if (track.artist.isNotBlank()) {
+                "${track.title} · ${track.artist}"
+            } else {
+                track.title
+            }
             if (track.isPlaying) {
                 binding.tvActiveTrackState.text = getString(R.string.state_playing)
                 binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
                 binding.btnMainPlayPause.text = getString(R.string.btn_pause)
+                binding.btnMainPlayPause.setIconResource(R.drawable.ic_pause)
             } else {
                 binding.tvActiveTrackState.text = getString(R.string.state_paused)
                 binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
                 binding.btnMainPlayPause.text = getString(R.string.btn_play)
+                binding.btnMainPlayPause.setIconResource(R.drawable.ic_play)
             }
+        } else {
+            binding.tvActiveTrackInfo.text = getString(R.string.no_music_playing)
+            binding.tvActiveTrackState.text = getString(R.string.state_paused)
+            binding.tvActiveTrackState.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            binding.btnMainPlayPause.text = getString(R.string.btn_play)
+            binding.btnMainPlayPause.setIconResource(R.drawable.ic_play)
         }
     }
 
@@ -526,87 +689,150 @@ class MainActivity : AppCompatActivity() {
         binding.switchGpsStabilizer.isChecked = RoadSyncBridge.isGpsRealtimeEnabled(this)
     }
 
+    private fun applyPermissionRowState(
+        statusView: android.widget.TextView,
+        actionBtn: com.google.android.material.button.MaterialButton,
+        statusText: String,
+        statusColorRes: Int,
+        btnText: String,
+        actionable: Boolean
+    ) {
+        statusView.text = statusText
+        statusView.setTextColor(ContextCompat.getColor(this, statusColorRes))
+        actionBtn.text = btnText
+        actionBtn.isEnabled = actionable
+        actionBtn.alpha = if (actionable) 1.0f else 0.48f
+    }
+
     private fun updatePermissionStatuses() {
-        // 1A. Cek Akses Notifikasi milik aplikasi resmi Honda RoadSync (Krusial untuk Maps & WA di Headunit!)
+        // 1A. RoadSync Notification Listener
         val isRoadSyncInstalled = RoadSyncBridge.isRoadSyncInstalled(this)
         val isRoadSyncNotifGranted = RoadSyncBridge.isRoadSyncNotificationAccessGranted(this)
         if (!isRoadSyncInstalled) {
-            binding.tvRoadSyncNotifStatus.text = getString(R.string.roadsync_status_not_installed)
-            binding.tvRoadSyncNotifStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
-            binding.btnGrantRoadSyncNotif.isEnabled = false
+            applyPermissionRowState(
+                binding.tvRoadSyncNotifStatus,
+                binding.btnGrantRoadSyncNotif,
+                getString(R.string.status_offline),
+                R.color.text_muted,
+                getString(R.string.btn_configure),
+                false
+            )
         } else if (isRoadSyncNotifGranted) {
-            binding.tvRoadSyncNotifStatus.text = getString(R.string.status_granted_roadsync_notif)
-            binding.tvRoadSyncNotifStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            binding.btnGrantRoadSyncNotif.text = getString(R.string.btn_granted)
-            binding.btnGrantRoadSyncNotif.isEnabled = false
+            applyPermissionRowState(
+                binding.tvRoadSyncNotifStatus,
+                binding.btnGrantRoadSyncNotif,
+                getString(R.string.status_granted_roadsync_notif),
+                R.color.accent_green,
+                getString(R.string.btn_granted),
+                false
+            )
         } else {
-            binding.tvRoadSyncNotifStatus.text = getString(R.string.status_grant_roadsync_notif_hint)
-            binding.tvRoadSyncNotifStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
-            binding.btnGrantRoadSyncNotif.text = getString(R.string.btn_grant)
-            binding.btnGrantRoadSyncNotif.isEnabled = true
+            applyPermissionRowState(
+                binding.tvRoadSyncNotifStatus,
+                binding.btnGrantRoadSyncNotif,
+                getString(R.string.status_grant_roadsync_notif_hint),
+                R.color.accent_amber,
+                getString(R.string.btn_grant),
+                true
+            )
         }
 
-        // 1B. Cek Notification Listener H-Sync
-        val isNotificationGranted = isNotificationServiceEnabled()
-        if (isNotificationGranted) {
-            binding.tvNotificationStatus.text = getString(R.string.status_granted_notification)
-            binding.tvNotificationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            binding.btnGrantNotification.text = getString(R.string.btn_granted)
-            binding.btnGrantNotification.isEnabled = false
+        // 1B. H-Sync Notification Listener
+        if (isNotificationServiceEnabled()) {
+            applyPermissionRowState(
+                binding.tvNotificationStatus,
+                binding.btnGrantNotification,
+                getString(R.string.status_granted_notification),
+                R.color.accent_green,
+                getString(R.string.btn_granted),
+                false
+            )
         } else {
-            binding.tvNotificationStatus.text = getString(R.string.status_grant_notification_hint)
-            binding.tvNotificationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
-            binding.btnGrantNotification.text = getString(R.string.btn_configure)
-            binding.btnGrantNotification.isEnabled = true
+            applyPermissionRowState(
+                binding.tvNotificationStatus,
+                binding.btnGrantNotification,
+                getString(R.string.status_grant_notification_hint),
+                R.color.accent_amber,
+                getString(R.string.btn_configure),
+                true
+            )
         }
 
-        // 2. Cek Battery Optimization
+        // 2. Battery Optimization
         val isBatteryIgnoring = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             pm.isIgnoringBatteryOptimizations(packageName)
         } else true
 
         if (isBatteryIgnoring) {
-            binding.tvBatteryStatus.text = getString(R.string.status_granted_battery)
-            binding.tvBatteryStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            binding.btnGrantBattery.text = getString(R.string.btn_granted)
-            binding.btnGrantBattery.isEnabled = false
+            applyPermissionRowState(
+                binding.tvBatteryStatus,
+                binding.btnGrantBattery,
+                getString(R.string.status_granted_battery),
+                R.color.accent_green,
+                getString(R.string.btn_granted),
+                false
+            )
         } else {
-            binding.tvBatteryStatus.text = getString(R.string.status_grant_battery_hint)
-            binding.tvBatteryStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
-            binding.btnGrantBattery.text = getString(R.string.btn_configure)
-            binding.btnGrantBattery.isEnabled = true
+            applyPermissionRowState(
+                binding.tvBatteryStatus,
+                binding.btnGrantBattery,
+                getString(R.string.status_grant_battery_hint),
+                R.color.accent_amber,
+                getString(R.string.btn_configure),
+                true
+            )
         }
 
-        // 3. Cek Location & Background Location
+        // 3. Location & Background Location
         if (hasLocationPermission() && hasBackgroundLocationPermission()) {
-            binding.tvLocationStatus.text = getString(R.string.status_granted_location_bg)
-            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            binding.btnGrantLocation.text = getString(R.string.btn_granted)
-            binding.btnGrantLocation.isEnabled = false
+            applyPermissionRowState(
+                binding.tvLocationStatus,
+                binding.btnGrantLocation,
+                getString(R.string.status_granted_location_bg),
+                R.color.accent_green,
+                getString(R.string.btn_granted),
+                false
+            )
         } else if (hasLocationPermission()) {
-            binding.tvLocationStatus.text = getString(R.string.status_grant_location_bg_hint)
-            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
-            binding.btnGrantLocation.text = getString(R.string.btn_allow_always)
-            binding.btnGrantLocation.isEnabled = true
+            applyPermissionRowState(
+                binding.tvLocationStatus,
+                binding.btnGrantLocation,
+                getString(R.string.status_grant_location_bg_hint),
+                R.color.accent_cyan,
+                getString(R.string.btn_allow_always),
+                true
+            )
         } else {
-            binding.tvLocationStatus.text = getString(R.string.status_grant_location_hint)
-            binding.tvLocationStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
-            binding.btnGrantLocation.text = getString(R.string.btn_configure)
-            binding.btnGrantLocation.isEnabled = true
+            applyPermissionRowState(
+                binding.tvLocationStatus,
+                binding.btnGrantLocation,
+                getString(R.string.status_grant_location_hint),
+                R.color.accent_amber,
+                getString(R.string.btn_configure),
+                true
+            )
         }
 
-        // 4. Cek Contacts Permission (Nama Penelepon WA)
+        // 4. Caller Contacts
         if (ContactNameResolver.hasReadContactsPermission(this)) {
-            binding.tvContactsStatus.text = getString(R.string.status_granted_contacts)
-            binding.tvContactsStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-            binding.btnGrantContacts.text = getString(R.string.btn_granted)
-            binding.btnGrantContacts.isEnabled = false
+            applyPermissionRowState(
+                binding.tvContactsStatus,
+                binding.btnGrantContacts,
+                getString(R.string.status_granted_contacts),
+                R.color.accent_green,
+                getString(R.string.btn_granted),
+                false
+            )
         } else {
-            binding.tvContactsStatus.text = getString(R.string.status_grant_contacts_hint)
-            binding.tvContactsStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
-            binding.btnGrantContacts.text = getString(R.string.btn_configure)
-            binding.btnGrantContacts.isEnabled = true
+            applyPermissionRowState(
+                binding.tvContactsStatus,
+                binding.btnGrantContacts,
+                getString(R.string.status_grant_contacts_hint),
+                R.color.accent_amber,
+                getString(R.string.btn_configure),
+                true
+            )
         }
     }
 

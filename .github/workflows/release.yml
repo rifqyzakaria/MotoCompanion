@@ -58,23 +58,23 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: H-Sync-v1.7.1-APK
+          name: H-Sync-v1.8.0-APK
           path: release_assets/MotoCompanion.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.7.1' }}
-          name: "H-Sync v1.7.1 (Smooth RoadSync Maps Navigation Fix, Cooperative Live GPS & WhatsApp Caller Name Fix)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.8.0' }}
+          name: "H-Sync v1.8.0 (Crafted Instrument UI, 5-Act Scroll Timeline & Precision Vector Suite)"
           body: |
             ## Changelog
-            - **Smooth RoadSync Maps & Headunit Navigation Fix**: Removed 2.4GHz `WifiLock` BLE contention, GNSS reset commands, and notification binder loop so Honda RoadSync opens Maps and streams Turn-by-Turn directions smoothly without interruption.
-            - **Cooperative Live GPS**: Uses a clean, shared `FusedLocationProviderClient` (`1000ms` high-accuracy stream) alongside RoadSync and Google Maps with zero hardware resets.
-            - **WhatsApp Call & Message Fix**: Restored full Android 12–14 `CallStyle` incoming WhatsApp call detection offloaded to a background thread, reading saved Contact Names (never phone numbers), plus automatic RoadSync Notification Access health diagnostics on the dashboard.
+            - **5-Act Scroll-Craft Architecture**: Rebuilt the dashboard into five distinct structural sections with a single focal Rider Cockpit & Media Bridge deck, 60fps scroll-linked depth choreography, and full reduced-motion support.
+            - **Quiet Chrome & Precision Vector Suite**: Replaced all decorative emojis and legacy system icons with a unified `1.75dp` stroke vector icon set and high-contrast 60-30-10 palettes across Light and Dark modes.
+            - **Tabular Instrument HUD**: Upgraded the landscape Handlebar HUD with tabular figures (`tnum`) to eliminate digit jitter, refined compass needle geometry, and localized cardinal headings.
 
             ## Install
-            **Android** (8.0 / API 26+): installs straight over v1.7.0 via `MotoCompanion.apk` by `rifqyzakaria`.
+            **Android** (8.0 / API 26+): installs straight over v1.7.1 via `MotoCompanion.apk` by `rifqyzakaria`.
           files: release_assets/MotoCompanion.apk
           draft: false
           prerelease: false

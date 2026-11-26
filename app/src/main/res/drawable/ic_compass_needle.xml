@@ -4,23 +4,25 @@
     android:height="64dp"
     android:viewportWidth="64"
     android:viewportHeight="64">
-    <!-- North Pointer (Cyan) -->
+    <!-- Subtle Outer Calibration Ring Ticks -->
     <path
-        android:fillColor="@color/accent_cyan"
-        android:pathData="M32,4 L44,32 L32,26 Z" />
-    <!-- North Pointer Shadow -->
+        android:fillColor="#00000000"
+        android:pathData="M32,2V7M32,57V62M2,32H7M57,32H62"
+        android:strokeColor="#3394A3B8"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.5" />
+    <!-- Precision North Needle (Sky Cyan) -->
     <path
-        android:fillColor="#00B0FF"
-        android:pathData="M32,4 L20,32 L32,26 Z" />
-    <!-- South Pointer (Subtle) -->
+        android:fillColor="@color/hud_accent_cyan"
+        android:pathData="M32,7 L39,32 L32,28.5 L25,32 Z" />
+    <!-- Counterbalance South Tail (Muted Instrument Slate) -->
     <path
-        android:fillColor="@color/text_muted"
-        android:pathData="M32,60 L44,32 L32,26 Z" />
+        android:fillColor="#475569"
+        android:pathData="M32,57 L37.5,32 L32,28.5 L26.5,32 Z" />
+    <!-- Center Jewel Pivot -->
     <path
-        android:fillColor="@color/border_color"
-        android:pathData="M32,60 L20,32 L32,26 Z" />
-    <!-- Center Pivot Circle -->
-    <path
-        android:fillColor="@color/text_primary"
-        android:pathData="M32,32m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+        android:fillColor="@color/hud_bg"
+        android:pathData="M32,32m-4.5,0a4.5,4.5 0,1 1,9 0a4.5,4.5 0,1 1,-9 0"
+        android:strokeColor="@color/hud_text_primary"
+        android:strokeWidth="1.5" />
 </vector>

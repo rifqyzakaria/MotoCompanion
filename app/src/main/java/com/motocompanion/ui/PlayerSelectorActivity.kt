@@ -39,7 +39,11 @@ class PlayerSelectorActivity : AppCompatActivity() {
             MediaControlDispatcher.setSelectedPlayer(this, player.packageName, player.appName)
             adapter.setSelectedPackage(selectedPackage)
             updateSelectedUi()
-            Toast.makeText(this, "Pemutar aktif: ${player.appName}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                getString(R.string.selector_toast_active, player.appName),
+                Toast.LENGTH_SHORT
+            ).show()
         }
         binding.rvPlayers.layoutManager = LinearLayoutManager(this)
         binding.rvPlayers.adapter = adapter
@@ -59,19 +63,19 @@ class PlayerSelectorActivity : AppCompatActivity() {
         binding.btnTestPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
             val name = MediaControlDispatcher.getSelectedName(this)
-            Toast.makeText(this, "⏮ Lagu Sebelumnya dikirim ke $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_cmd_sent_prev, name), Toast.LENGTH_SHORT).show()
         }
 
         binding.btnTestPlayPause.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             val name = MediaControlDispatcher.getSelectedName(this)
-            Toast.makeText(this, "⏯ Play/Pause dikirim ke $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_cmd_sent_play_pause, name), Toast.LENGTH_SHORT).show()
         }
 
         binding.btnTestNext.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_NEXT)
             val name = MediaControlDispatcher.getSelectedName(this)
-            Toast.makeText(this, "Next ⏭ dikirim ke $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_cmd_sent_next, name), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -83,7 +87,7 @@ class PlayerSelectorActivity : AppCompatActivity() {
 
     private fun updateSelectedUi() {
         val currentName = MediaControlDispatcher.getSelectedName(this)
-        binding.tvCurrentSelected.text = "Terpilih: $currentName"
+        binding.tvCurrentSelected.text = getString(R.string.selector_selected_format, currentName)
     }
 
     private class PlayerAdapter(
@@ -106,6 +110,7 @@ class PlayerSelectorActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val player = list[position]
+            val ctx = holder.itemView.context
             holder.binding.tvAppName.text = player.appName
             holder.binding.tvPackageName.text = player.packageName
 
@@ -115,13 +120,10 @@ class PlayerSelectorActivity : AppCompatActivity() {
                 holder.binding.ivAppIcon.setImageResource(R.drawable.ic_bike)
             }
 
-            // Label jenis
-            if (player.isInternal) {
-                holder.binding.tvAppType.text = "Bawaan"
-            } else if (player.isVideoPlayer) {
-                holder.binding.tvAppType.text = "Video / Musik"
-            } else {
-                holder.binding.tvAppType.text = "Musik"
+            holder.binding.tvAppType.text = when {
+                player.isInternal -> ctx.getString(R.string.selector_type_builtin)
+                player.isVideoPlayer -> ctx.getString(R.string.selector_type_video)
+                else -> ctx.getString(R.string.selector_type_audio)
             }
 
             holder.binding.rbSelected.isChecked = (player.packageName == currentSelectedPkg)

@@ -31,7 +31,6 @@ class HudActivity : AppCompatActivity(), SensorEventListener {
     private val clockHandler = Handler(Looper.getMainLooper())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
-    // Sensor Kompas Gerak Fisik HP
     private lateinit var sensorManager: SensorManager
     private var rotationVectorSensor: Sensor? = null
     private var accelerometer: Sensor? = null
@@ -88,7 +87,6 @@ class HudActivity : AppCompatActivity(), SensorEventListener {
             finish()
         }
 
-        // Kontrol Media Terlihat & Mudah Dikontrol Saat Berkendara
         binding.btnHudPlayPause.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             clockHandler.postDelayed({ updateHudMediaInfo() }, 250)
@@ -121,7 +119,6 @@ class HudActivity : AppCompatActivity(), SensorEventListener {
         enableImmersiveMode()
         updateHudMediaInfo()
 
-        // Daftarkan listener sensor kompas HP
         if (rotationVectorSensor != null) {
             sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_UI)
         } else {
@@ -177,9 +174,6 @@ class HudActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    /**
-     * Menghitung sudut derajat arah kompas disesuaikan orientasi layar LANDSCAPE
-     */
     private fun calculateAzimuth(matrix: FloatArray): Float {
         @Suppress("DEPRECATION")
         val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -229,28 +223,20 @@ class HudActivity : AppCompatActivity(), SensorEventListener {
         return azimuth
     }
 
-    /**
-     * Memperbarui kompas dengan interpolasi halus mengikuti gerak fisik HP
-     */
     private fun updateCompassDisplay(sensorAzimuth: Float) {
-        // Jika sedang melaju kencang (> 15 km/jam), arah GPS sangat presisi; jika pelan / diam, sensor HP aktif penuh
         val isUsingGps = currentSpeedKmh > 15f && currentGpsBearing > 0f
         val targetHeading = if (isUsingGps) currentGpsBearing else sensorAzimuth
 
-        // Hitung jarak sudut terpendek agar jarum tidak berputar 360 derajat saat melewati 0/360
         var diff = (targetHeading - currentFilteredAzimuth) % 360f
         if (diff > 180f) diff -= 360f
         if (diff < -180f) diff += 360f
 
-        // Faktor penghalusan (damping)
         currentFilteredAzimuth = ((currentFilteredAzimuth + diff * 0.25f) % 360f + 360f) % 360f
-
-        // Putar jarum kompas menunjuk ke Utara secara fisik
         binding.ivCompassNeedle.rotation = -currentFilteredAzimuth
 
         val headingInt = currentFilteredAzimuth.toInt()
         val modeLabel = if (isUsingGps) getString(R.string.hud_compass_mode_gps) else getString(R.string.hud_compass_mode_sensor)
-        binding.tvBearingDegrees.text = String.format(Locale.getDefault(), "%03d° • %s", headingInt, modeLabel)
+        binding.tvBearingDegrees.text = String.format(Locale.getDefault(), "%03d° · %s", headingInt, modeLabel)
         binding.tvCardinalDirection.text = getCardinal(currentFilteredAzimuth)
     }
 
@@ -262,45 +248,52 @@ class HudActivity : AppCompatActivity(), SensorEventListener {
 
     private fun getCardinal(bearing: Float): String {
         return when (((bearing + 22.5f) % 360f / 45f).toInt()) {
-            0 -> "U (Utara)"
-            1 -> "TL (Timur Laut)"
-            2 -> "T (Timur)"
-            3 -> "TG (Tenggara)"
-            4 -> "S (Selatan)"
-            5 -> "BD (Barat Daya)"
-            6 -> "B (Barat)"
-            7 -> "BL (Barat Laut)"
-            else -> "U (Utara)"
+            0 -> getString(R.string.cardinal_n)
+            1 -> getString(R.string.cardinal_ne)
+            2 -> getString(R.string.cardinal_e)
+            3 -> getString(R.string.cardinal_se)
+            4 -> getString(R.string.cardinal_s)
+            5 -> getString(R.string.cardinal_sw)
+            6 -> getString(R.string.cardinal_w)
+            7 -> getString(R.string.cardinal_nw)
+            else -> getString(R.string.cardinal_n)
         }
     }
 
-    /**
-     * Memperbarui status media player di HUD agar selalu tampak jelas dan mudah dikontrol pengendara
-     */
     private fun updateHudMediaInfo() {
         val track = MediaControlDispatcher.getActiveTrackInfo(this)
         val selectedPlayer = MediaControlDispatcher.getSelectedName(this)
 
         if (track != null && track.title.isNotBlank()) {
             binding.tvHudSongTitle.text = track.title
-            binding.tvHudSongArtist.text = "${track.artist} • ${track.appName}"
-            binding.btnHudPlayPause.text = if (track.isPlaying) "⏸" else "▶"
+            binding.tvHudSongArtist.text = if (track.artist.isNotBlank()) {
+                "${track.artist} · ${track.appName}"
+            } else {
+                track.appName
+            }
+            binding.btnHudPlayPause.setIconResource(
+                if (track.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            )
+            binding.btnHudPlayPause.contentDescription = getString(
+                if (track.isPlaying) R.string.btn_pause else R.string.btn_play
+            )
         } else {
             binding.tvHudSongTitle.text = getString(R.string.hud_music_ready)
             binding.tvHudSongArtist.text = getString(R.string.hud_player_format, selectedPlayer)
-            binding.btnHudPlayPause.text = "▶"
+            binding.btnHudPlayPause.setIconResource(R.drawable.ic_play)
+            binding.btnHudPlayPause.contentDescription = getString(R.string.btn_play)
         }
     }
 
     private fun enableImmersiveMode() {
         @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                )
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+            )
     }
 }

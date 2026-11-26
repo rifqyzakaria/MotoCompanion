@@ -13,9 +13,9 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingStart="22dp"
-        android:paddingTop="22dp"
-        android:paddingEnd="22dp">
+        android:paddingStart="24dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="24dp">
 
         <TextView
             android:id="@+id/tvUpdateModalTitle"
@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:letterSpacing="0.01"
+            android:letterSpacing="-0.01"
             android:text="@string/update_modal_title"
             android:textColor="#FFFFFF"
             android:textSize="17sp" />
@@ -36,14 +36,14 @@
             android:gravity="center"
             android:text="Downloading H-Sync..."
             android:textColor="#AEAEB2"
-            android:textSize="12.5sp" />
+            android:textSize="13sp" />
 
         <ProgressBar
             android:id="@+id/progressUpdateBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="3.5dp"
-            android:layout_marginTop="14dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="16dp"
             android:indeterminate="false"
             android:max="100"
             android:progress="0"
@@ -56,20 +56,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:paddingStart="22dp"
-        android:paddingEnd="22dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
         android:text="@string/update_whats_new"
         android:textColor="#98989F"
         android:textSize="12sp" />
 
-    <!-- Subtle Hairline Under What's New (Shown in Ready State) -->
+    <!-- Subtle 1dp Hairline Under What's New (Shown in Ready State) -->
     <View
         android:id="@+id/dividerWhatsNew"
         android:layout_width="match_parent"
-        android:layout_height="0.8dp"
-        android:layout_marginStart="22dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="22dp"
+        android:layout_marginEnd="24dp"
         android:background="#22FFFFFF"
         android:visibility="gone" />
 
@@ -77,14 +77,14 @@
     <ScrollView
         android:id="@+id/scrollUpdateChangelog"
         android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:layout_marginTop="6dp"
+        android:layout_height="224dp"
+        android:layout_marginTop="8dp"
         android:fadingEdgeLength="24dp"
         android:overScrollMode="ifContentScrolls"
-        android:paddingStart="22dp"
+        android:paddingStart="24dp"
         android:paddingTop="4dp"
-        android:paddingEnd="22dp"
-        android:paddingBottom="14dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp"
         android:requiresFadingEdge="vertical"
         android:scrollbars="none">
 
@@ -92,19 +92,19 @@
             android:id="@+id/tvUpdateChangelog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lineSpacingExtra="3dp"
+            android:lineSpacingExtra="4dp"
             android:textColor="#F2F2F7"
-            android:textColorLink="#409CFF"
-            android:textSize="13.5sp" />
+            android:textColorLink="#38BDF8"
+            android:textSize="13sp" />
     </ScrollView>
 
-    <!-- Top Action Hairline Divider -->
+    <!-- Top Action 1dp Hairline Divider -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="0.8dp"
+        android:layout_height="1dp"
         android:background="#29FFFFFF" />
 
-    <!-- State 1: Downloading Action (Single Full-Width Cancel Button) -->
+    <!-- State 1: Downloading Action -->
     <LinearLayout
         android:id="@+id/layoutDownloadingActions"
         android:layout_width="match_parent"
@@ -122,10 +122,10 @@
             android:gravity="center"
             android:text="@string/btn_cancel"
             android:textColor="#FFFFFF"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
-    <!-- State 2: Ready to Install / Retry Actions (Stacked Full-Width Install Now & Later) -->
+    <!-- State 2: Ready to Install / Retry Actions -->
     <LinearLayout
         android:id="@+id/layoutReadyActions"
         android:layout_width="match_parent"
@@ -144,12 +144,11 @@
             android:gravity="center"
             android:text="@string/update_btn_install_now"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textSize="15sp" />
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.8dp"
+            android:layout_height="1dp"
             android:background="#29FFFFFF" />
 
         <TextView
@@ -163,7 +162,7 @@
             android:gravity="center"
             android:text="@string/update_dialog_btn_later"
             android:textColor="#EBEBF5"
-            android:textSize="15.5sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
 </LinearLayout>

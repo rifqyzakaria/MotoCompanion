@@ -3,15 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
     android:background="@color/hud_bg"
     android:keepScreenOn="true"
-    android:paddingStart="20dp"
-    android:paddingTop="14dp"
-    android:paddingEnd="20dp"
-    android:paddingBottom="14dp">
+    android:paddingStart="24dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="12dp">
 
-    <!-- Top Bar: Clock, Mode Pill & Exit Button -->
+    <!-- Top Instrument Bar: Tabular Clock, Live Mode Pill & Quiet Exit -->
     <LinearLayout
         android:id="@+id/layoutHudTopBar"
         android:layout_width="match_parent"
@@ -26,45 +25,55 @@
             android:id="@+id/tvHudClock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="-0.01"
             android:text="12:00"
             android:textColor="@color/hud_text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/tvHudStatusPill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:background="@drawable/bg_pill"
-            android:paddingStart="10dp"
-            android:paddingTop="3dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="3dp"
-            android:text="H-SYNC HUD • KOMPAS AKTIF"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_hud_media_card"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.08"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp"
+            android:text="@string/hud_status_pill_text"
             android:textColor="@color/hud_accent_cyan"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            android:textSize="10sp" />
 
-        <!-- Spacer -->
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCloseHud"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
+            android:fontFamily="sans-serif-medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
             android:minHeight="36dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:text="@string/hud_exit"
-            android:textColor="@color/accent_red"
+            android:textAllCaps="false"
+            android:textColor="@color/hud_text_secondary"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/hud_border"
+            app:strokeWidth="1dp" />
     </LinearLayout>
 
-    <!-- Center Display: Left = Speedometer, Right = Dynamic Compass -->
+    <!-- Center Cockpit Telemetry: Asymmetric Speedometer + Precision Compass -->
     <LinearLayout
         android:id="@+id/layoutHudCenter"
         android:layout_width="match_parent"
@@ -77,11 +86,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/layoutHudTopBar">
 
-        <!-- Left Column: Big Speedometer & Sub-Stats -->
+        <!-- Left Zone: Tabular Speedometer & Satellite Telemetry -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.1"
+            android:layout_weight="1.15"
             android:gravity="center"
             android:orientation="vertical">
 
@@ -89,23 +98,24 @@
                 android:id="@+id/tvSpeedValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:fontFeatureSettings="tnum"
                 android:includeFontPadding="false"
+                android:letterSpacing="-0.03"
                 android:text="0"
-                android:textColor="@color/hud_accent_cyan"
-                android:textSize="100sp"
-                android:textStyle="bold" />
+                android:textColor="@color/hud_text_primary"
+                android:textSize="96sp" />
 
             <TextView
                 android:id="@+id/tvSpeedUnit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.2"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.14"
                 android:text="@string/hud_speed_unit"
-                android:textColor="@color/hud_text_secondary"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textColor="@color/hud_accent_cyan"
+                android:textSize="12sp" />
 
-            <!-- Sub Stats Row (Altitude & GPS Accuracy) -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -117,46 +127,48 @@
                     android:id="@+id/tvAltitude"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ketinggian: - mdpl"
+                    android:fontFeatureSettings="tnum"
+                    android:text="- mdpl"
                     android:textColor="@color/hud_text_secondary"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:text="•"
-                    android:textColor="@color/border_color" />
+                    android:text="·"
+                    android:textColor="@color/hud_text_secondary"
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/tvGpsAccuracy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="GPS: Akurasi ±3m"
+                    android:fontFeatureSettings="tnum"
+                    android:text="GPS ±3m"
                     android:textColor="@color/hud_accent_green"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Vertical Divider -->
+        <!-- Vertical Hairline -->
         <View
             android:layout_width="1dp"
-            android:layout_height="120dp"
-            android:background="@color/border_color" />
+            android:layout_height="112dp"
+            android:background="@color/hud_border" />
 
-        <!-- Right Column: Dynamic Compass Following Phone Movement -->
+        <!-- Right Zone: Live Motion & GPS Vector Compass -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.9"
+            android:layout_weight="0.85"
             android:gravity="center"
             android:orientation="vertical">
 
-            <!-- Circular Dial with Compass Needle -->
             <FrameLayout
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="112dp"
+                android:layout_height="112dp"
                 android:background="@drawable/bg_hud_dial">
 
                 <ImageView
@@ -164,32 +176,33 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_gravity="center"
-                    android:contentDescription="Compass Needle"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_compass_needle" />
             </FrameLayout>
 
-            <!-- Cardinal & Degrees -->
             <TextView
                 android:id="@+id/tvCardinalDirection"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="U (Utara)"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/cardinal_n"
                 android:textColor="@color/hud_text_primary"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tvBearingDegrees"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="000° • Sensor HP"
-                android:textColor="@color/hud_accent_cyan"
+                android:layout_marginTop="4dp"
+                android:fontFeatureSettings="tnum"
+                android:text="000°"
+                android:textColor="@color/hud_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Bottom: Dedicated, Visible & Easy-to-Control Media Player Bar -->
+    <!-- Bottom Media Deck: Clean Vector Transport Controls -->
     <LinearLayout
         android:id="@+id/cardHudMedia"
         android:layout_width="match_parent"
@@ -205,19 +218,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Music Note Icon / Indicator -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginEnd="12dp"
-            android:text="🎵"
-            android:textSize="20sp" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_music_note"
+            app:tint="@color/hud_accent_cyan" />
 
-        <!-- Song Title & Artist (Visible & Clear for Riders) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="16dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -226,69 +238,90 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
+                android:fontFamily="sans-serif-medium"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:singleLine="true"
                 android:text="@string/hud_music_ready"
                 android:textColor="@color/hud_text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/tvHudSongArtist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="Pemutar H-Sync"
+                android:text="H-Sync"
                 android:textColor="@color/hud_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Large Tactile Rider-Friendly Control Buttons -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnHudPrev"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="48dp"
                 android:layout_height="44dp"
+                android:contentDescription="@string/btn_prev"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="48dp"
                 android:padding="0dp"
-                android:text="◀"
-                android:textColor="@color/hud_text_primary"
-                android:textSize="16sp"
-                app:strokeColor="@color/border_color" />
+                android:text=""
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_skip_prev"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="20dp"
+                app:iconTint="@color/hud_text_primary"
+                app:strokeColor="@color/hud_border"
+                app:strokeWidth="1dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnHudPlayPause"
                 android:layout_width="64dp"
                 android:layout_height="44dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/accent_cyan"
+                android:backgroundTint="@color/hud_accent_cyan"
+                android:contentDescription="@string/btn_play"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="64dp"
                 android:padding="0dp"
-                android:text="⏯"
-                android:textColor="#0D1117"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:text=""
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_play"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="22dp"
+                app:iconTint="@color/hud_bg" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnHudNext"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="48dp"
                 android:layout_height="44dp"
+                android:contentDescription="@string/btn_next"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="48dp"
                 android:padding="0dp"
-                android:text="▶"
-                android:textColor="@color/hud_text_primary"
-                android:textSize="16sp"
-                app:strokeColor="@color/border_color" />
+                android:text=""
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_skip_next"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="20dp"
+                app:iconTint="@color/hud_text_primary"
+                app:strokeColor="@color/hud_border"
+                app:strokeWidth="1dp" />
         </LinearLayout>
     </LinearLayout>
 

@@ -60,13 +60,10 @@ class MainActivity : AppCompatActivity() {
         updateThemeAndLanguageUi()
         updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
 
-        // Minta izin esensial (Lokasi, Kontak untuk nama penelepon WA, Bluetooth, Notifikasi) bila belum aktif
         requestEssentialPermissionsIfNeeded()
 
-        // Periksa pembaruan di latar belakang saat aplikasi dibuka (menampilkan modal Software Update baru)
         AppUpdateManager.checkForUpdates(this, showUpToDateToast = false)
 
-        // Otomatis aktifkan hanya jika motor Honda / helm benar-benar sedang terhubung aktif
         val isBikeConnected = RoadSyncBridge.getConnectedDeviceName(this) != null
         if (isBikeConnected) {
             RoadSyncBridge.startAllServices(this, "MainActivity OnCreate with Connected Bike")
@@ -89,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         updateGithubRepoUi()
         updateThemeAndLanguageUi()
         updateMusicPlayerSwitchUi(RoadSyncBridge.isMusicPlayerEnabled(this))
+        updateWaMessageSubtitle()
         trackUpdateHandler.post(trackUpdateRunnable)
 
         val filter = IntentFilter().apply {
@@ -121,7 +119,7 @@ class MainActivity : AppCompatActivity() {
         updatePermissionStatuses()
         if (RoadSyncBridge.isRoadSyncActive || RoadSyncBridge.getConnectedDeviceName(this) != null) {
             if (hasLocationPermission() && RoadSyncBridge.isGpsRealtimeEnabled(this)) {
-                RoadSyncBridge.startGpsService(this, boostNavigation = true)
+                RoadSyncBridge.startGpsService(this)
             }
         }
     }
@@ -162,7 +160,6 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
-        // Switch Pemutar Musik H-Sync untuk Honda RoadSync
         binding.switchHsyncMusic.setOnCheckedChangeListener { _, isChecked ->
             RoadSyncBridge.setMusicPlayerEnabled(this, isChecked)
             updateMusicPlayerSwitchUi(isChecked)
@@ -173,7 +170,6 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
-        // Switch Volume Musik Otomatis 20% saat Terhubung ke Headunit Motor
         binding.switchAutoVolume20.setOnCheckedChangeListener { _, isChecked ->
             RoadSyncBridge.setAutoVolume20Enabled(this, isChecked)
             Toast.makeText(
@@ -183,7 +179,6 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
-        // Kontrol Cepat Pemutar Media Terpilih
         binding.btnMainPrev.setOnClickListener {
             MediaControlDispatcher.dispatchMediaAction(this, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
             val name = MediaControlDispatcher.getSelectedName(this)
@@ -217,7 +212,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, MusicActivity::class.java))
         }
 
-        // Pengaturan Tampilan & Bahasa
         binding.btnSelectLanguage.setOnClickListener {
             showLanguageDialog()
         }
@@ -226,19 +220,23 @@ class MainActivity : AppCompatActivity() {
             showThemeDialog()
         }
 
-        // Pembaruan Aplikasi GitHub Resmi (rifqyzakaria)
         binding.btnCheckUpdate.setOnClickListener {
             Toast.makeText(this, getString(R.string.toast_checking_update), Toast.LENGTH_SHORT).show()
             AppUpdateManager.checkForUpdates(this, showUpToDateToast = true)
         }
 
-        // Izin Notifikasi
+        // Izin Akses Notifikasi Honda RoadSync & H-Sync
+        binding.btnGrantRoadSyncNotif.setOnClickListener {
+            Toast.makeText(this, getString(R.string.toast_enable_roadsync_notif), Toast.LENGTH_LONG).show()
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            startActivity(intent)
+        }
+
         binding.btnGrantNotification.setOnClickListener {
             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
             startActivity(intent)
         }
 
-        // Izin Baterai
         binding.btnGrantBattery.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
@@ -248,7 +246,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Izin Lokasi (Termasuk Lokasi Latar Belakang "Sepanjang Waktu" untuk GPS Realtime Headunit)
         binding.btnGrantLocation.setOnClickListener {
             if (!hasLocationPermission()) {
                 requestLocationPermission()
@@ -257,16 +254,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Izin Kontak (Untuk membaca Nama Kontak saat ada panggilan WhatsApp masuk)
         binding.btnGrantContacts.setOnClickListener {
             requestContactsPermission()
         }
 
-        // Preferences Switches
         val prefs = getSharedPreferences(NotificationAnnouncerService.PREFS_NAME, Context.MODE_PRIVATE)
 
         binding.switchWaCalls.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_CALLS, isChecked).apply()
+            if (isChecked && !ContactNameResolver.hasReadContactsPermission(this)) {
+                requestContactsPermission()
+            }
+        }
+
+        binding.switchWaMessages.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_MESSAGES, isChecked).apply()
+            updateWaMessageSubtitle()
             if (isChecked && !ContactNameResolver.hasReadContactsPermission(this)) {
                 requestContactsPermission()
             }
@@ -279,7 +282,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Tes Audio & Simulasi
         binding.btnTestVoice.setOnClickListener {
             val voiceText = getString(R.string.tts_test_intercom)
             App.instance.ttsManager.speak(voiceText, isPriority = true)
@@ -292,14 +294,25 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.toast_testing_call), Toast.LENGTH_SHORT).show()
         }
 
-        // Buka Layar Kendara HUD
         binding.btnOpenHud.setOnClickListener {
             if (hasLocationPermission()) {
-                RoadSyncBridge.startGpsService(this, boostNavigation = true)
+                RoadSyncBridge.startGpsService(this)
                 startActivity(Intent(this, HudActivity::class.java))
             } else {
                 requestLocationPermission()
             }
+        }
+    }
+
+    private fun updateWaMessageSubtitle() {
+        val prefs = getSharedPreferences(NotificationAnnouncerService.PREFS_NAME, Context.MODE_PRIVATE)
+        val isManualSpeechOn = prefs.getBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_MESSAGES, false)
+        val isRoadSyncNotifOk = RoadSyncBridge.isRoadSyncNotificationAccessGranted(this)
+
+        binding.tvWaMessagesModeDesc.text = when {
+            isManualSpeechOn -> getString(R.string.toggle_whatsapp_messages_sub)
+            isRoadSyncNotifOk -> getString(R.string.info_whatsapp_messages_roadsync_sub)
+            else -> getString(R.string.toggle_whatsapp_messages_fallback_sub)
         }
     }
 
@@ -508,12 +521,32 @@ class MainActivity : AppCompatActivity() {
     private fun loadPreferences() {
         val prefs = getSharedPreferences(NotificationAnnouncerService.PREFS_NAME, Context.MODE_PRIVATE)
         binding.switchWaCalls.isChecked = prefs.getBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_CALLS, true)
+        binding.switchWaMessages.isChecked = prefs.getBoolean(NotificationAnnouncerService.KEY_ANNOUNCE_MESSAGES, false)
         binding.switchAutoVolume20.isChecked = RoadSyncBridge.isAutoVolume20Enabled(this)
         binding.switchGpsStabilizer.isChecked = RoadSyncBridge.isGpsRealtimeEnabled(this)
     }
 
     private fun updatePermissionStatuses() {
-        // 1. Cek Notification Listener
+        // 1A. Cek Akses Notifikasi milik aplikasi resmi Honda RoadSync (Krusial untuk Maps & WA di Headunit!)
+        val isRoadSyncInstalled = RoadSyncBridge.isRoadSyncInstalled(this)
+        val isRoadSyncNotifGranted = RoadSyncBridge.isRoadSyncNotificationAccessGranted(this)
+        if (!isRoadSyncInstalled) {
+            binding.tvRoadSyncNotifStatus.text = getString(R.string.roadsync_status_not_installed)
+            binding.tvRoadSyncNotifStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            binding.btnGrantRoadSyncNotif.isEnabled = false
+        } else if (isRoadSyncNotifGranted) {
+            binding.tvRoadSyncNotifStatus.text = getString(R.string.status_granted_roadsync_notif)
+            binding.tvRoadSyncNotifStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.btnGrantRoadSyncNotif.text = getString(R.string.btn_granted)
+            binding.btnGrantRoadSyncNotif.isEnabled = false
+        } else {
+            binding.tvRoadSyncNotifStatus.text = getString(R.string.status_grant_roadsync_notif_hint)
+            binding.tvRoadSyncNotifStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            binding.btnGrantRoadSyncNotif.text = getString(R.string.btn_grant)
+            binding.btnGrantRoadSyncNotif.isEnabled = true
+        }
+
+        // 1B. Cek Notification Listener H-Sync
         val isNotificationGranted = isNotificationServiceEnabled()
         if (isNotificationGranted) {
             binding.tvNotificationStatus.text = getString(R.string.status_granted_notification)

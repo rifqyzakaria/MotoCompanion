@@ -546,7 +546,7 @@
                 android:layout_marginBottom="10dp"
                 android:background="@color/border_color" />
 
-            <!-- Info: Pesan WhatsApp Mengikuti Aplikasi Honda RoadSync -->
+            <!-- Switch: Pesan WhatsApp (Otomatis ikuti RoadSync / Cadangan Suara Intercom) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -568,6 +568,7 @@
                         android:textSize="14sp" />
 
                     <TextView
+                        android:id="@+id/tvWaMessagesModeDesc"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/info_whatsapp_messages_roadsync_sub"
@@ -575,18 +576,11 @@
                         android:textSize="11sp" />
                 </LinearLayout>
 
-                <TextView
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchWaMessages"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_pill"
-                    android:paddingStart="8dp"
-                    android:paddingTop="3dp"
-                    android:paddingEnd="8dp"
-                    android:paddingBottom="3dp"
-                    android:text="@string/badge_follows_roadsync"
-                    android:textColor="@color/accent_cyan"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
+                    android:checked="false" />
             </LinearLayout>
 
             <View
@@ -801,7 +795,51 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Baris 1: Akses Notifikasi -->
+            <!-- Baris 1A: Akses Notifikasi Honda RoadSync (Wajib agar Maps & WA tampil di Headunit) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/status_roadsync_notif_access"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvRoadSyncNotifStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="@string/btn_granted"
+                    android:textColor="@color/accent_green"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btnGrantRoadSyncNotif"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="@string/btn_configure"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/border_color" />
+
+            <!-- Baris 1B: Akses Notifikasi H-Sync -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

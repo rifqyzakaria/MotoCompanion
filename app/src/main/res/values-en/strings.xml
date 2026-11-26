@@ -65,7 +65,8 @@
     <string name="toggle_whatsapp_messages">Read Incoming WhatsApp Messages</string>
     <string name="toggle_whatsapp_messages_sub">Read incoming WA chat messages into helmet intercom</string>
     <string name="info_whatsapp_messages_roadsync_title">WhatsApp Chat Messages</string>
-    <string name="info_whatsapp_messages_roadsync_sub">Follows message reading settings in the Honda RoadSync app</string>
+    <string name="info_whatsapp_messages_roadsync_sub">Follows Honda RoadSync automatically (Toggle ON to force H-Sync voice reading)</string>
+    <string name="toggle_whatsapp_messages_fallback_sub">RoadSync Notification Access is OFF — H-Sync automatically reads WA messages with Contact Name</string>
     <string name="badge_follows_roadsync">ROADSYNC</string>
     <string name="wa_call_banner_title">Incoming WhatsApp Call</string>
     <string name="toggle_gps_stabilizer">Realtime Google Maps GPS &amp; Anti-Reroute</string>
@@ -99,7 +100,11 @@
 
     <!-- Permissions & Update Section -->
     <string name="section_permissions">SYSTEM PERMISSIONS &amp; UPDATE</string>
-    <string name="status_notification_access">Notification Access</string>
+    <string name="status_roadsync_notif_access">RoadSync Notif</string>
+    <string name="status_granted_roadsync_notif">Active (Headunit Maps &amp; WA)</string>
+    <string name="status_grant_roadsync_notif_hint">Must enable for Headunit Maps &amp; WA!</string>
+    <string name="toast_enable_roadsync_notif">Make sure BOTH \'Honda RoadSync\' and \'H-Sync\' are toggled ON in Notification Access!</string>
+    <string name="status_notification_access">H-Sync Notif</string>
     <string name="status_battery_optimization">Battery Optimization</string>
     <string name="status_location">GPS Location Permission</string>
     <string name="status_granted_notification">Active (Detecting WhatsApp)</string>

@@ -5,13 +5,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
-    <!-- Location for Realtime Google Maps GPS Lock, Bearing Stabilization and Speedometer -->
+    <!-- Location for Cooperative Live GPS, Bearing Stabilization and Speedometer -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
     <!-- Contacts Permission to resolve WhatsApp Caller Name instead of Phone Number -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -38,11 +35,10 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <queries>
-        <!-- Honda RoadSync & Google Maps Packages -->
+        <!-- Honda RoadSync App Packages -->
         <package android:name="com.honda.ms.dm.sab" />
         <package android:name="com.honda.ms.hsvcs" />
         <package android:name="com.honda.auto.hsvcs" />
-        <package android:name="com.google.android.apps.maps" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="audio/*" />

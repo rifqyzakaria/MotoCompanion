@@ -65,7 +65,8 @@
     <string name="toggle_whatsapp_messages">Bacakan Pesan WhatsApp Masuk</string>
     <string name="toggle_whatsapp_messages_sub">Bacakan isi chat pesan WA ke helm intercom</string>
     <string name="info_whatsapp_messages_roadsync_title">Baca Pesan Chat WhatsApp</string>
-    <string name="info_whatsapp_messages_roadsync_sub">Mengikuti pengaturan pembaca pesan pada aplikasi Honda RoadSync</string>
+    <string name="info_whatsapp_messages_roadsync_sub">Otomatis mengikuti aplikasi Honda RoadSync (Geser ON jika ingin dibacakan H-Sync)</string>
+    <string name="toggle_whatsapp_messages_fallback_sub">Akses Notifikasi RoadSync mati — H-Sync otomatis membacakan pesan WA dari Nama Kontak</string>
     <string name="badge_follows_roadsync">ROADSYNC</string>
     <string name="wa_call_banner_title">Panggilan Masuk WhatsApp</string>
     <string name="toggle_gps_stabilizer">GPS Realtime Google Maps &amp; Anti-Ubah Rute</string>
@@ -99,7 +100,11 @@
 
     <!-- Permissions & Update Section -->
     <string name="section_permissions">STATUS IZIN SISTEM &amp; PEMBARUAN</string>
-    <string name="status_notification_access">Akses Notifikasi</string>
+    <string name="status_roadsync_notif_access">Notifikasi RoadSync</string>
+    <string name="status_granted_roadsync_notif">Aktif (Maps &amp; WA Headunit)</string>
+    <string name="status_grant_roadsync_notif_hint">Wajib ON agar Maps &amp; WA muncul di Headunit!</string>
+    <string name="toast_enable_roadsync_notif">Pastikan \'Honda RoadSync\' DAN \'H-Sync\' keduanya dicentang AKTIF pada Akses Notifikasi!</string>
+    <string name="status_notification_access">Notifikasi H-Sync</string>
     <string name="status_battery_optimization">Optimasi Baterai</string>
     <string name="status_location">Izin Lokasi GPS</string>
     <string name="status_granted_notification">Aktif (Mendeteksi WhatsApp)</string>

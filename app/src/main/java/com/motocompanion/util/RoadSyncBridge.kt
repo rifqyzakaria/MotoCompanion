@@ -1,7 +1,6 @@
 package com.motocompanion.util
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
@@ -15,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.motocompanion.service.GpsTrackingService
@@ -26,10 +26,7 @@ object RoadSyncBridge {
 
     private const val TAG = "RoadSyncBridge"
 
-    // Package resmi Honda RoadSync & Google Maps
     const val PKG_HONDA_ROADSYNC = "com.honda.ms.dm.sab"
-    const val PKG_GOOGLE_MAPS = "com.google.android.apps.maps"
-
     val KNOWN_ROADSYNC_PACKAGES = listOf(
         "com.honda.ms.dm.sab",
         "com.honda.ms.hsvcs",
@@ -61,8 +58,25 @@ object RoadSyncBridge {
     private var hasAppliedSessionVolume: Boolean = false
 
     /**
+     * Memeriksa apakah aplikasi resmi Honda RoadSync memiliki izin "Akses Notifikasi" (Notification Access) di Android.
+     * Izin ini WAJIB dimiliki oleh Honda RoadSync sendiri agar Headunit motor dapat menampilkan:
+     * 1. Navigasi Turn-by-Turn dari Google Maps
+     * 2. Pesan masuk dari WhatsApp (bukan hanya SMS & telepon seluler biasa)
+     */
+    fun isRoadSyncNotificationAccessGranted(context: Context): Boolean {
+        return try {
+            val enabledListeners = Settings.Secure.getString(
+                context.contentResolver,
+                "enabled_notification_listeners"
+            ) ?: return false
+            KNOWN_ROADSYNC_PACKAGES.any { pkg -> enabledListeners.contains(pkg) }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
      * Memeriksa apakah ponsel sedang terhubung ke mobil / Android Auto (Head Unit Mobil).
-     * Jika terhubung, H-Sync tidak boleh berjalan agar tidak bentrok dengan sistem mobil.
      */
     fun isAndroidAutoConnected(context: Context): Boolean {
         try {
@@ -169,11 +183,6 @@ object RoadSyncBridge {
         }
     }
 
-    /**
-     * Menurunkan volume pemutar musik (STREAM_MUSIC) ke 20% secara otomatis saat terhubung ke Headunit motor.
-     * Menangani penundaan routing Bluetooth A2DP Absolute Volume agar tidak kembali ke 100%,
-     * namun hanya diterapkan pada awal sesi koneksi sehingga pengendara tetap bebas mengatur volume manual setelahnya.
-     */
     fun applyHeadunitMusicVolume(context: Context, forceApply: Boolean = false) {
         if (!isAutoVolume20Enabled(context)) return
 
@@ -190,7 +199,6 @@ object RoadSyncBridge {
         if (!hasAppliedSessionVolume || forceApply) {
             hasAppliedSessionVolume = true
             sessionConnectTimestampMs = now
-            // Re-verifikasi setelah jalur Bluetooth A2DP selesai berpindah dari speaker HP ke intercom/headunit
             mainHandler.postDelayed({
                 if (isRoadSyncActive || isCompanionActive(appCtx)) {
                     setMusicStreamTo20Percent(appCtx)
@@ -243,10 +251,14 @@ object RoadSyncBridge {
                 lower.contains("forza") || lower.contains("hornet") ||
                 lower.contains("transalp") || lower.contains("cb") ||
                 lower.contains("cbr") || lower.contains("rebel") ||
+                lower.contains("vario") || lower.contains("stylo") ||
                 lower.contains("hawk") || lower.contains("africa") ||
-                lower.contains("scooter") || lower.contains("intercom") ||
-                lower.contains("sena") || lower.contains("cardo") ||
-                lower.contains("ejeas") || lower.contains("freedconn") ||
+                lower.contains("meter") || lower.contains("tft") ||
+                lower.contains("moto") || lower.contains("scooter") ||
+                lower.contains("intercom") || lower.contains("sena") ||
+                lower.contains("cardo") || lower.contains("ejeas") ||
+                lower.contains("freedconn") || lower.contains("maxto") ||
+                lower.contains("retouch") || lower.contains("parani") ||
                 lower.contains("helmet") || lower.contains("headset")
     }
 
@@ -271,40 +283,41 @@ object RoadSyncBridge {
     }
 
     /**
-     * Otomatis mengaktifkan seluruh ekosistem H-Sync saat Headunit motor Honda / RoadSync tersambung:
-     * 1. Menurunkan volume musik ke 20%
-     * 2. Mengunci GPS Realtime (Google Maps Fused Location + GNSS Hardware) di latar belakang
-     * 3. Menjalankan jembatan pemutar musik (jika diaktifkan)
+     * Mengaktifkan ekosistem H-Sync secara IDEMPOTENT (hanya sekali per sesi, tidak mengulang restart
+     * service ketika RoadSync memperbarui status bar agar navigasi Maps & BLE RoadSync tetap mulus).
      */
     fun startAllServices(context: Context, triggerSource: String = "") {
         if (isAndroidAutoConnected(context)) {
-            Log.w(TAG, "🛑 Android Auto / Mobil terdeteksi ($triggerSource). H-Sync dicegah agar tidak berjalan.")
-            stopAllServices(context, "Android Auto Terhubung")
+            Log.w(TAG, "🛑 Android Auto / Mobil terdeteksi ($triggerSource). H-Sync tidak dijalankan.")
+            if (isRoadSyncActive || isCompanionActive(context)) {
+                stopAllServices(context, "Android Auto Terhubung")
+            }
             return
         }
 
         val wasAlreadyActive = isRoadSyncActive
-        Log.i(TAG, "🟢 Mengaktifkan H-Sync (Trigger: $triggerSource, wasActive=$wasAlreadyActive)")
         isRoadSyncActive = true
         setCompanionActive(context, true)
 
-        // 1. Turunkan volume pemutar musik ke 20% pada saat connect ke Headunit motor
-        if (!wasAlreadyActive) {
-            sessionConnectTimestampMs = System.currentTimeMillis()
-            hasAppliedSessionVolume = false
+        // Jika sesi sudah berjalan aktif, cukup pastikan GPS berjalan bila belum hidup lalu keluar tanpa mengganggu RoadSync!
+        if (wasAlreadyActive) {
+            if (isGpsRealtimeEnabled(context) && !GpsTrackingService.isServiceRunning) {
+                startGpsService(context)
+            }
+            return
         }
+
+        Log.i(TAG, "🟢 Memulai sesi baru H-Sync (Trigger: $triggerSource)")
+        sessionConnectTimestampMs = System.currentTimeMillis()
+        hasAppliedSessionVolume = false
         applyHeadunitMusicVolume(context)
 
-        // 2. Langsung aktifkan GPS Realtime (Google Maps Fused Engine) agar langsung lock & anti telat Turn-by-Turn
-        if (isGpsRealtimeEnabled(context)) {
-            startGpsService(context, boostNavigation = true)
+        if (isGpsRealtimeEnabled(context) && !GpsTrackingService.isServiceRunning) {
+            startGpsService(context)
         }
 
-        // 3. Aktifkan MediaSessionService jika saklar pemutar musik H-Sync ON
         if (isMusicPlayerEnabled(context)) {
             startMediaService(context)
-        } else {
-            Log.i(TAG, "Pemutar musik H-Sync dinonaktifkan (RoadSync memakai pemutar bawaan).")
         }
 
         val broadcast = Intent(ACTION_ROADSYNC_STATE_CHANGED).setPackage(context.packageName)
@@ -312,18 +325,15 @@ object RoadSyncBridge {
     }
 
     fun startGpsService(context: Context, boostNavigation: Boolean = false) {
+        if (GpsTrackingService.isServiceRunning) return
+
         val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (!hasFine && !hasCoarse) {
-            Log.w(TAG, "Izin lokasi belum diberikan, menunda start GpsTrackingService")
             return
         }
 
-        val gpsIntent = Intent(context, GpsTrackingService::class.java).apply {
-            if (boostNavigation) {
-                action = GpsTrackingService.ACTION_BOOST_NAVIGATION
-            }
-        }
+        val gpsIntent = Intent(context, GpsTrackingService::class.java)
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 ContextCompat.startForegroundService(context, gpsIntent)
@@ -350,9 +360,6 @@ object RoadSyncBridge {
         }
     }
 
-    /**
-     * Otomatis mematikan H-Sync secara bersih saat motor Honda RoadSync mati / terputus
-     */
     fun stopAllServices(context: Context, triggerSource: String = "") {
         Log.i(TAG, "🔴 Mematikan H-Sync secara otomatis (Trigger: $triggerSource)")
         isRoadSyncActive = false
@@ -415,9 +422,23 @@ object RoadSyncBridge {
     }
 
     /**
-     * Mengambil nama perangkat Bluetooth motor Honda atau helm yang BENAR-BENAR SEDANG TERHUBUNG aktif
-     * (bukan sekadar pernah dipasangkan / paired di masa lalu).
+     * Memeriksa apakah ada koneksi audio Bluetooth (A2DP / Headset HFP) aktif (mis. intercom helm atau Headunit motor).
      */
+    fun isBluetoothAudioRouteConnected(context: Context): Boolean {
+        return try {
+            val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager ?: return false
+            val adapter = bm.adapter ?: return false
+            if (!adapter.isEnabled) return false
+            val a2dp = adapter.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothProfile.STATE_CONNECTED
+            val hfp = adapter.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothProfile.STATE_CONNECTED
+            a2dp || hfp
+        } catch (_: SecurityException) {
+            false
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     fun getConnectedDeviceName(context: Context): String? {
         if (activeConnectedTargetDevices.isNotEmpty()) {
             return activeConnectedTargetDevices.firstOrNull()
@@ -428,30 +449,29 @@ object RoadSyncBridge {
             val adapter = bm.adapter ?: return null
             if (!adapter.isEnabled) return null
 
-            // Cek perangkat BLE / GATT yang aktif terhubung (seperti modul BLE Honda RoadSync HSVCS)
-            try {
-                val gattDevices = bm.getConnectedDevices(BluetoothProfile.GATT)
-                for (device in gattDevices) {
-                    val name = try { device.name ?: "" } catch (_: SecurityException) { "" }
-                    if (isTargetDeviceName(name)) {
-                        activeConnectedTargetDevices.add(name)
-                        return name
-                    }
-                }
-            } catch (_: SecurityException) {} catch (_: Exception) {}
-
-            // Cek perangkat Classic Bluetooth (A2DP / HFP / ACL) yang benar-benar berstatus connected
             val bondedDevices: Set<BluetoothDevice>? = try {
                 adapter.bondedDevices
             } catch (_: SecurityException) {
                 null
             }
 
+            // 1. Prioritaskan perangkat target yang terverifikasi aktif via refleksi ACL isConnected()
             bondedDevices?.forEach { device ->
                 val name = try { device.name ?: "" } catch (_: SecurityException) { "" }
                 if (isTargetDeviceName(name) && isBluetoothDeviceActuallyConnected(device)) {
                     activeConnectedTargetDevices.add(name)
                     return name
+                }
+            }
+
+            // 2. Fallback untuk perangkat BLE Honda RoadSync (di mana isConnected() Classic ACL kadang false namun A2DP/HFP aktif)
+            if (isBluetoothAudioRouteConnected(context)) {
+                val pairedTarget = bondedDevices?.firstOrNull { device ->
+                    val name = try { device.name ?: "" } catch (_: SecurityException) { "" }
+                    isTargetDeviceName(name)
+                }
+                if (pairedTarget != null) {
+                    return try { pairedTarget.name } catch (_: SecurityException) { "Honda Headunit" }
                 }
             }
         } catch (e: Exception) {
